@@ -1,0 +1,7 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <stroke
+        android:color="@color/stream_compose_borders"
+        android:width="1dp"/>
+    <corners
+        android:radius="@dimen/exomedia_leanback_controls_bottom_margin"/>
+</shape>

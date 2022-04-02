@@ -1,0 +1,24 @@
+<resources>
+    <!--
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=0E:9A:81:E8:1B:75:B4:65:4C:7C:98:88:7F:B3:B5:76:0A:E0:0D:44%3Bcom.firefly.bikerr.ui.fragments
+
+    You can also add your credentials to an existing key, using these values:
+
+    Package name:
+    com.firefly.bikerr.navigation.community.map.bikerr
+
+    SHA-1 certificate fingerprint:
+    0E:9A:81:E8:1B:75:B4:65:4C:7C:98:88:7F:B3:B5:76:0A:E0:0D:44
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBLFffJm0Zy2ZPE64RpUic2TG-_-hwY5kw</string>
+</resources>

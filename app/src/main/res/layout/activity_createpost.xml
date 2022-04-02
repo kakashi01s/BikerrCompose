@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.CreatepostActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="New Post"
+                android:padding="5dp"
+                android:textColor="@color/black"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="end">
+
+                <Button
+                    android:id="@+id/createPostButton"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:layout_marginEnd="0dp"
+                    android:text="Post" />
+            </LinearLayout>
+
+
+
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/post_caption"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="40dp"
+            android:layout_alignParentTop="true"
+            android:hint="Write something about Your Post!" />
+
+
+        <LinearLayout
+            android:id="@+id/llpostitem"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_below="@+id/post_caption"
+
+            >
+
+            <ImageButton
+                android:id="@+id/Post_Item"
+                android:layout_width="match_parent"
+                android:layout_height="280dp"
+                android:src="@drawable/ic_baseline_add_24" />
+
+        </LinearLayout>
+
+
+
+
+    </RelativeLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

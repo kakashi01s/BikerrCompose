@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "591530677123",
+    "firebase_url": "https://bikerrapp-9ba1d-default-rtdb.firebaseio.com",
+    "project_id": "bikerrapp-9ba1d",
+    "storage_bucket": "bikerrapp-9ba1d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591530677123:android:783f3415399193e68b1cb6",
+        "android_client_info": {
+          "package_name": "com.firefly.bikerr_compose"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "591530677123-c3tjgfna2djm96n67kmh61fmj9q3bqj0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.firefly.bikerr_compose",
+            "certificate_hash": "0e9a81e81b75b4654c7c98887fb3b5760ae00d44"
+          }
+        },
+        {
+          "client_id": "591530677123-dtrvelslvk0utuoh0fjufthghqem0mav.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAv3votIvACGbxN0rxLqc71tn6C5OPdNjk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "591530677123-dtrvelslvk0utuoh0fjufthghqem0mav.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
