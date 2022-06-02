@@ -22,6 +22,11 @@
         <entry key="../../../../layout/compose-model-1648667969160.xml" value="0.20354729729729729" />
         <entry key="../../../../layout/compose-model-1648716170555.xml" value="0.1" />
         <entry key="../../../../layout/compose-model-1648749635586.xml" value="0.1" />
+        <entry key="../../../../layout/compose-model-1652169460681.xml" value="0.1" />
+        <entry key="../../../../layout/compose-model-1652177736266.xml" value="0.20354729729729729" />
+        <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.115" />
+        <entry key="app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.1195" />
+        <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.115" />
         <entry key="app/src/main/res/drawable/outline.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_createpost.xml" value="0.17028985507246377" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.1322463768115942" />
@@ -35,8 +40,15 @@
         <entry key="app/src/main/res/layout/fragment_nearby.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_profile.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_shop.xml" value="0.1322463768115942" />
+        <entry key="app/src/main/res/layout/layout_map.xml" value="0.17028985507246377" />
+        <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.115" />
       </map>
     </option>
+  </component>
+  <component name="EntryPointsManager">
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="androidx.compose.runtime.Composable" />
+    </list>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />

@@ -70,7 +70,7 @@ class CommunityCreateActivity : ComponentActivity() {
                                             = HashMap()
                                     //adding elements to the hashMap using
                                     // put() function
-                                    hashMap.put("name" , name)
+                                hashMap["name"] = name
                                     val channelClient = client.channel(channelType = "messaging", channelId = id)
                                     channelClient.create(memberIds = listOf(uid) ,extraData =  hashMap).enqueue { result ->
                                         if (result.isSuccess) {

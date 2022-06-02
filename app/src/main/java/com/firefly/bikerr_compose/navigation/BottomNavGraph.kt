@@ -1,15 +1,13 @@
 package com.firefly.bikerr_compose.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.firefly.bikerr_compose.activities.MainActivityCompose
-import com.firefly.bikerr_compose.data.remote.placesDto.Result
 import com.firefly.bikerr_compose.screens.home.FeedScreen
-import com.firefly.bikerr_compose.screens.map.TraccarScreen
-import com.firefly.bikerr_compose.screens.nearby.NearbyScreen
+import com.firefly.bikerr_compose.screens.me.MeScreen
+import com.firefly.bikerr_compose.screens.rent.RentScreen
 import com.firefly.bikerr_compose.screens.shop.ShopScreen
 import com.firefly.bikerr_compose.viewmodel.ViewModelmain
 
@@ -26,7 +24,7 @@ NavHost(
 ){
         composable(route = BottomBarScreen.Feed.route)
         {
-            FeedScreen(mainActivityCompose)
+            FeedScreen(mainActivityCompose,mainViewModel)
         }
         composable(route = BottomBarScreen.Shop.route)
         {
@@ -34,11 +32,11 @@ NavHost(
         }
         composable(route = BottomBarScreen.Traccar.route)
         {
-            TraccarScreen(mainActivityCompose)
+            RentScreen(mainActivityCompose = mainActivityCompose,mainViewModel)
         }
-        composable(route = BottomBarScreen.Nearby.route)
+        composable(route = BottomBarScreen.Profile.route)
         {
-           NearbyScreen(mainActivityCompose)
+           MeScreen(mainActivityCompose = mainActivityCompose,mainViewModel)
         }
 
 }

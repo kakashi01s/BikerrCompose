@@ -3,7 +3,6 @@ package com.firefly.bikerr_compose.activities
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -28,7 +27,6 @@ import coil.compose.rememberImagePainter
 import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
 import com.firefly.bikerr_compose.model.CartItem
 import com.firefly.bikerr_compose.screens.login.TextFieldState
-import com.google.android.libraries.places.internal.i
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -37,7 +35,6 @@ import com.google.firebase.database.ValueEventListener
 
 class CartActivity : ComponentActivity() {
 
-    var checkout : Button? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +66,7 @@ class CartActivity : ComponentActivity() {
                     }
                 }) {
                     Column {
-                        getCartItems(this@CartActivity, orderList)
+                        GetCartItems(this@CartActivity, orderList)
                     }
 
                 }
@@ -85,19 +82,23 @@ fun sendDatatoorders(cartActivity: CartActivity, orderList: SnapshotStateList<Ca
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val db = FirebaseDatabase.getInstance()
     var total : Long = 0
+    var quantity = 0
     for (i in orderList)
     {
-        total += i.price.toString().toLong()
+        total += i.product?.Price!!.toLong()
+
+
     }
     Log.d("total", total.toString())
     db.getReference("Orders").child(uid!!).setValue(orderList)
-    val intent = Intent(cartActivity,CheckoutActivity::class.java)
+    val intent = Intent(cartActivity,CheckoutOrderActivity::class.java)
+    intent.putExtra("total", total)
     intent.putExtra("total", total)
     cartActivity.startActivity(intent)
 }
 
 @Composable
-fun getCartItems(cartActivity: CartActivity,  orderList: SnapshotStateList<CartItem> = remember { mutableStateListOf() }) {
+fun GetCartItems(cartActivity: CartActivity,  orderList: SnapshotStateList<CartItem> = remember { mutableStateListOf() }) {
     val db = FirebaseDatabase.getInstance()
     val cartitemList = remember { mutableStateListOf<CartItem>() }
     val uid = FirebaseAuth.getInstance().currentUser?.uid
@@ -118,7 +119,7 @@ fun getCartItems(cartActivity: CartActivity,  orderList: SnapshotStateList<CartI
             }
         })
     cartitemList.let {
-        LazyColumn(){
+        LazyColumn {
             items(it){
               CartItem(item = it, cartActivity, cartitemList)
             }
@@ -137,62 +138,57 @@ fun CartItem(item : CartItem, cartActivity: CartActivity,cartitemList : Snapshot
     }
     quantity.text = item.quantity.toString()
     size.text = item.Size.toString()
-    Column() {
+    Column {
         Row(Modifier.padding(5.dp)) {
 
-            Image(painter = rememberImagePainter(item.image), contentDescription ="" , modifier = Modifier.size(150.dp))
+            Image(painter = rememberImagePainter(data = item.product?.Image1), contentDescription = "",modifier = Modifier.size(150.dp))
             Column(Modifier.padding(5.dp)) {
-                Row() {
-                    Text(text = item.name.toString(), fontWeight = FontWeight.Bold)
+                Row {
+                    Text(text = item.product?.Name.toString(), fontWeight = FontWeight.Bold)
                 }
 
-                Row() {
+                Row {
                     Text(text = "Price :       ", fontWeight = FontWeight.Bold)
-                    Text(text = item.price.toString())
+                    Text(text = item.product?.Price.toString())
                 }
-                Row() {
+                Row {
                     Text(text = "Size :         ")
                     Text(text = size.text)
                 }
                 
-                Row() {
-                    Text(text = "Quantity : ")
+                Row {
+                    Text(text = "Quantity :  ")
                     Row(
                         Modifier
-                            .background(Color.LightGray)
                             .height(30.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = {
 
-
-                             }) {
-                            Icon(imageVector = Icons.Default.Remove, contentDescription = "")
-                        }
                         Text(text = quantity.text)
-                        IconButton(onClick = { /*TODO*/ }) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "")
-                        }
+
                     }
                     Spacer(modifier = Modifier.size(5.dp))
-                    IconButton(onClick = {
+                    Row(Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.End) {
+                        IconButton(onClick = {
 
-                        val builder = androidx.appcompat.app.AlertDialog.Builder(cartActivity)
-                        builder.setTitle("Remove Item")
-                        builder.setMessage("Do You Want to Remove This Item")
-                        builder.setPositiveButton("CANCEL"
-                        ) { dialog, which -> dialog?.cancel() }
-                        builder.setNegativeButton("REMOVE"
-                        ) { dialog, which ->
-                            val db = FirebaseDatabase.getInstance()
-                            val uid = FirebaseAuth.getInstance().currentUser?.uid
-                            db.getReference("Cart").child(uid!!).child(item.name.toString()).removeValue()
-                            Log.d("removeitem", "Removed ${item.name}")
-                            cartitemList.remove(item)
-                            Log.d("cartList", cartitemList.toString())
+                            val builder = androidx.appcompat.app.AlertDialog.Builder(cartActivity)
+                            builder.setTitle("Remove Item")
+                            builder.setMessage("Do You Want to Remove This Item")
+                            builder.setPositiveButton("CANCEL"
+                            ) { dialog, _ -> dialog?.cancel() }
+                            builder.setNegativeButton("REMOVE"
+                            ) { _, _ ->
+                                val db = FirebaseDatabase.getInstance()
+                                val uid = FirebaseAuth.getInstance().currentUser?.uid
+                                db.getReference("Cart").child(uid!!).child(item.product?.Name.toString()).removeValue()
+                                Log.d("removeitem", "Removed ${item.product?.Name}")
+                                cartitemList.remove(item)
+                                Log.d("cartList", cartitemList.toString())
+                            }
+                            builder.show()
+                        }) {
+                            Icon(imageVector = Icons.Default.Delete, contentDescription = "")
                         }
-                        builder.show()
-                    }) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = "")
                     }
+
                 }
                 
 

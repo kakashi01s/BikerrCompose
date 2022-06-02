@@ -1,6 +1,7 @@
 package com.firefly.bikerr_compose.model
 
-data class CartItem(var name: String?, val price: Any?, val image: String?, var quantity : String?, var Size: String?)
+data class CartItem(val product: Product?, var quantity : String?, var Size: String?,)
 {
-    constructor() : this("", "", "","", "") {}
+    constructor(): this(null,"","",)
+
 }

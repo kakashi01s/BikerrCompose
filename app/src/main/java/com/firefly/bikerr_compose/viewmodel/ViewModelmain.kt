@@ -1,35 +1,42 @@
 package com.firefly.bikerr_compose.viewmodel
 
+import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import android.widget.Toast
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.*
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import com.firefly.bikerr_compose.activities.MainActivityCompose
+import com.firefly.bikerr_compose.activities.RentalItemActivity
 import com.firefly.bikerr_compose.model.Categories
 import com.firefly.bikerr_compose.model.Stores
-import com.firefly.bikerr_compose.screens.shop.CategoryBanner
-import com.firefly.bikerr_compose.screens.shop.SparePartsItem
-import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.firefly.bikerr_compose.model.Users
+import com.firefly.bikerr_compose.model.rental.RentCategory
+import com.firefly.bikerr_compose.model.rental.Vehicle
+import com.firefly.bikerr_compose.screens.login.TextFieldState
 import com.jet.firestore.JetFirestore
 import com.jet.firestore.getListOfObjects
+import com.pixplicity.easyprefs.library.Prefs
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.models.User
-import kotlinx.coroutines.delay
 
 class ViewModelmain : ViewModel() {
-
-    val loading = mutableStateOf(false)
-     var sparePartlist = mutableStateOf(listOf<Stores>())
+    val mainHandler = Handler(Looper.getMainLooper())
+    private val loading = mutableStateOf(false)
+     var sparePartsList = mutableStateOf(listOf<Stores>())
+     var unreadMessages = mutableStateOf(0)
+     var rentalList = mutableStateOf(listOf<RentCategory>())
      var categorylist = mutableStateOf(listOf<Categories>())
-    var databaseRef: DatabaseReference? = null
+    var vehicleList = mutableStateOf(listOf<Vehicle>())
+    var user : MutableState<Users> = mutableStateOf(Users("","","","",""))
+
+
+    private var  client : ChatClient = ChatClient.instance()
 
 
     @Composable
@@ -42,7 +49,52 @@ class ViewModelmain : ViewModel() {
                 //booksList = values.getListOfObjects()
 
                 //When documents are fetched based on limit
-                sparePartlist.value =  values.getListOfObjects()
+                sparePartsList.value =  values.getListOfObjects()
+            }) {
+
+        }
+    }
+
+
+    @Composable
+    fun getUserDetails(uid :String)
+    {
+        val uname  = remember {
+            TextFieldState()
+        }
+        val unumber = remember {
+            TextFieldState()
+        }
+        val uemail = remember {
+            TextFieldState()
+        }
+        val uimg = remember {
+            TextFieldState()
+        }
+
+        uname.text = Prefs.getString("userName")
+        uemail.text = Prefs.getString("userEmail")
+        unumber.text = Prefs.getString("userPhone")
+        uimg.text = Prefs.getString("userImage")
+
+        user.value = Users(userName = uname.text, userEmail = uemail.text, userId = uid, userImage = uimg.text, userPhone = unumber.text)
+
+
+
+
+    }
+
+    @Composable
+    fun getRentalCategory() {
+        JetFirestore(path = {
+            collection("RentalCat")
+        },
+            onRealtimeCollectionFetch = { values, _ ->
+                //When all documents are fetched
+                //booksList = values.getListOfObjects()
+
+                //When documents are fetched based on limit
+                rentalList.value =  values.getListOfObjects()
             }) {
 
         }
@@ -54,13 +106,62 @@ class ViewModelmain : ViewModel() {
         JetFirestore(path = {
             collection("Categories")
         },
-            onRealtimeCollectionFetch = { values, exception ->
+            onRealtimeCollectionFetch = { values, _ ->
                 //When all documents are fetched
                 //booksList = values.getListOfObjects()
                 //When documents are fetched based on limit
                 categorylist.value = values.getListOfObjects()
             }) {
                 loading.value = false
+        }
+    }
+
+    fun streamunreadMessages(){
+        mainHandler.post(object : Runnable {
+            override fun run() {
+                unreadMessages.value = ChatClient.instance().getCurrentUser()?.totalUnreadCount!!
+                mainHandler.postDelayed(this, 1000)
+                Log.d("nnnn",unreadMessages.value.toString())
+            }
+        })
+    }
+
+    @Composable
+    fun getRentals() {
+        JetFirestore(path = {
+            collection("Rental")
+        },
+            onRealtimeCollectionFetch = { values, _ ->
+                //When all documents are fetched
+                //booksList = values.getListOfObjects()
+                //When documents are fetched based on limit
+                vehicleList.value =  values.getListOfObjects()
+            }) {
+
+//            val list =ArrayList<Vehicle>()
+//            Column(modifier = Modifier
+//                .fillMaxWidth()
+//                .height(650.dp)) {
+//                rentalList.let {
+//                    for (i in it){
+//                        if (i.location == selectedCity.text){
+//                            list.add(i)
+//                        }
+//                    }
+//                }
+//                LazyColumn(modifier = Modifier.fillMaxHeight().padding(15.dp),
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.spacedBy(10.dp),) {
+//                    items(list){ vehicle ->
+//                        RentalListItem(vehicle){
+//                            val intent = Intent(rentalActivity, RentalItemActivity::class.java)
+//                            intent.putExtra("header",vehicle.name)
+//                            intent.putExtra("reg",vehicle.regNumber)
+//                            rentalActivity.startActivity(intent)
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 
@@ -78,27 +179,26 @@ class ViewModelmain : ViewModel() {
         val uimg = remember {
             mutableStateOf("")
         }
-    val client = ChatClient.instance()
-    val uid = FirebaseAuth.getInstance().currentUser!!.uid
-    databaseRef = FirebaseDatabase.getInstance().getReference("Users")
-    databaseRef!!.child(uid).get().addOnSuccessListener { it ->
-        if (it.exists()) {
-            uname.value = it.child("userName").value.toString()
-            uemail.value = it.child("userEmail").value.toString()
-            unumber.value = it.child("userPhone").value.toString()
-            uimg.value = it.child("userImage").value.toString()
-            Log.d("uemail", uemail.value)
+
+
+            uname.value = Prefs.getString("userName")
+            uemail.value = Prefs.getString("userEmail")
+            unumber.value = Prefs.getString("userPhone")
+            uimg.value = Prefs.getString("userImage")
+
+            Log.d("uemail", Prefs.getString("userEmail"))
 
             val user = User(
-                id = uid,
+                id = Prefs.getString("userId"),
                 extraData = mutableMapOf(
                     "name" to uname.value,
                     "image" to uimg.value,
                 ),
             )
+
             client.connectUser(
                 user = user,
-                token = client.devToken(uid)
+                token = client.devToken(Prefs.getString("userId"))
             ).enqueue {
                 if (it.isSuccess) {
                     Log.d("stream", it.data().connectionId)
@@ -113,6 +213,3 @@ class ViewModelmain : ViewModel() {
 
         }
     }
-}
-
-}

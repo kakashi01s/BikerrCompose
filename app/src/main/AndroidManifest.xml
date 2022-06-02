@@ -8,9 +8,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name=".MainApplication"
@@ -22,9 +22,54 @@
         android:theme="@style/Theme.Bikerr"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".activities.CommentActivity"
+            android:name=".activities.MyProfileActivity"
             android:exported="false"
-            android:label="@string/title_activity_comment"
+            android:label="@string/title_activity_my_profile"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.CreateListingActivity"
+            android:exported="false"
+            android:label="@string/title_activity_create_listing"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.MyListingsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_my_listings"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.CheckoutBookingActivity"
+            android:exported="false"
+            android:label="@string/title_activity_checkout_booking"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.RentalBookingActivity"
+            android:exported="false"
+            android:label="@string/title_activity_rental_booking"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.RentalItemActivity"
+            android:exported="false"
+            android:label="@string/title_activity_rental_item"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.RentalActivity"
+            android:exported="false"
+            android:label="@string/title_activity_rental"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.TraccarHistoryActivity"
+            android:exported="false"
+            android:label="@string/title_activity_traccar_history"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.TraccarActivity"
+            android:exported="false"
+            android:label="@string/title_activity_traccar"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
+            android:name=".activities.AddDevice"
+            android:exported="false"
+            android:label="@string/title_activity_add_device"
             android:theme="@style/Theme.Bikerr" />
         <activity
             android:name=".activities.CommunityCreateActivity"
@@ -38,18 +83,26 @@
             android:theme="@style/Theme.Bikerr" />
         <activity
             android:name=".activities.MessagesActivity"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/title_activity_messaging"
             android:theme="@style/Theme.Bikerr"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize"
+            android:parentActivityName=".activities.MainActivityCompose"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true">
+
+        </activity>
         <activity
             android:name=".activities.ChannelActivity"
             android:exported="false"
             android:label="@string/title_activity_channels"
             android:theme="@style/Theme.Bikerr"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize" >
+
+        </activity>
         <activity
-            android:name=".activities.CheckoutActivity"
+            android:name=".activities.CheckoutOrderActivity"
             android:exported="false"
             android:label="@string/title_activity_checkout"
             android:theme="@style/Theme.Bikerr" />
@@ -69,16 +122,6 @@
             android:label="@string/title_activity_shop_item"
             android:theme="@style/Theme.Bikerr" />
         <activity
-            android:name=".activities.AddFeedActivity"
-            android:exported="false"
-            android:label="@string/title_activity_add_feed"
-            android:theme="@style/Theme.Bikerr" />
-        <activity
-            android:name=".activities.CreatepostActivity"
-            android:exported="false"
-            android:label="@string/title_activity_add_feed"
-            android:theme="@style/Theme.Bikerr" />
-        <activity
             android:name=".activities.WebActivity"
             android:exported="false"
             android:label="@string/title_activity_web"
@@ -89,7 +132,16 @@
             android:name=".activities.MainActivityCompose"
             android:exported="true"
             android:label="@string/title_activity_main_compose"
-            android:theme="@style/Theme.Bikerr" />
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Bikerr">
+            <intent-filter>
+                <action android:name="OPEN_ACTIVITY_1" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
+        <activity android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat"/>
         <activity
             android:name=".activities.LoginActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

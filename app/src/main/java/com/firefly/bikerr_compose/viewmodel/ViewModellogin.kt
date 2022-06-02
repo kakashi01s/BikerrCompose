@@ -8,21 +8,30 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.navigation.NavHostController
 import com.firefly.bikerr_compose.activities.LoginActivity
 import com.firefly.bikerr_compose.activities.MainActivityCompose
+import com.firefly.bikerr_compose.apiinterface.TraccarApiInterface
 import com.firefly.bikerr_compose.model.Users
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.*
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.parse.ParseObject
+import com.google.gson.GsonBuilder
+import com.pixplicity.easyprefs.library.Prefs
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.util.concurrent.TimeUnit
 
 class ViewModellogin(application: Application): AndroidViewModel(application) {
     private val auth = FirebaseAuth.getInstance()
     var cred: String? = null
-    lateinit var databaseref : DatabaseReference
+    private lateinit var databaseref : DatabaseReference
 
-
+    private lateinit var retrofit: Retrofit
+    private lateinit var retroInterface: TraccarApiInterface
 
     //Start Login
     fun loginTask(
@@ -34,6 +43,7 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
     ) {
         val auth = FirebaseAuth.getInstance()
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                 // This callback will be invoked in two situations:
                 // 1 - Instant verification. In some cases the phone number can be instantly
@@ -51,8 +61,11 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
 
                 if (e is FirebaseAuthInvalidCredentialsException) {
                     // Invalid request
+                    Log.w("login", "Invalid request", e)
+
                 } else if (e is FirebaseTooManyRequestsException) {
                     // The SMS quota for the project has been exceeded
+                    Log.w("login", "The SMS quota for the project has been exceeded", e)
                 }
 
                 // Show a message and update the UI
@@ -112,16 +125,21 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d("login", "signInWithCredential:success")
                     val firebaseUser = task.result.user!!.uid
+                    Prefs.putString("userId",firebaseUser)
+                    Prefs.putString("userName",username)
+                    Prefs.putString("userPhone",phone)
+                    Prefs.putString("userEmail",email)
+                    Prefs.putString("userImage","https://firebasestorage.googleapis.com/v0/b/bikerrapp-9ba1d.appspot.com/o/pfp.png?alt=media&token=1e3b49b6-f607-4411-9d31-223182136f52")
                     databaseref = FirebaseDatabase.getInstance().getReference("Users")
                     val users = Users(username,email,phone,"https://firebasestorage.googleapis.com/v0/b/bikerrapp-9ba1d.appspot.com/o/pfp.png?alt=media&token=1e3b49b6-f607-4411-9d31-223182136f52",firebaseUser)
                     sendDataToFirebase(users,firebaseUser,databaseref,loginActivity)
-                    sendDatatoParse(users)
                   loginActivity.startActivity(Intent(loginActivity, MainActivityCompose::class.java))
                 } else {
                     // Sign in failed, display a message and update the UI
                     Log.w("login", "signInWithCredential:failure", task.exception)
                     if (task.exception is FirebaseAuthInvalidCredentialsException) {
                         // The verification code entered was invalid
+                        Log.w("login", "The verification code entered was invalid", task.exception)
                     }
                     // Update UI
                 }
@@ -134,6 +152,15 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
         databaseRef: DatabaseReference,
         loginActivity: LoginActivity
     ) {
+        val gson = GsonBuilder().setLenient()
+        retrofit = Retrofit.Builder()
+            .baseUrl("http://13.233.254.137:80")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson.create()))
+            .build()
+        retroInterface = retrofit.create(TraccarApiInterface::class.java)
+
+        traccarlogin(retroInterface,users)
         databaseRef.child(firebaseUser).setValue(users).addOnSuccessListener {
             Toast.makeText(loginActivity, "User Registered Successfully", Toast.LENGTH_LONG).show()
             Log.d("register","User Registered Successfully")
@@ -143,22 +170,29 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
         }
     }
 
-
-    fun sendDatatoParse(users: Users) {
-        val ParseObject = ParseObject("FirebaseUsers")
-        ParseObject.put("uid", users.userId)
-        ParseObject.put("username" , users.userName)
-        ParseObject.put("email" , users.userEmail)
-        ParseObject.put("phone", users.userPhone)
-        ParseObject.put("image", users.userImage)
-        ParseObject.saveInBackground {
-            if (it != null){
-                it.localizedMessage?.let { message -> Log.e("login", message) }
-            }else{
-                Log.d("login","Object saved.")
+    private fun traccarlogin(
+        retroInterface: TraccarApiInterface,
+        users: Users
+    ) {
+        val map = HashMap<String, String>()
+        map["name"] = users.userName
+        map["email"] = users.userEmail
+        map["password"] = "1234567890"
+        retroInterface.createTraccarUser(map = map).enqueue(object : Callback<String> {
+            override fun onResponse(call: Call<String>, response: Response<String>) {
+                Log.d("pppp",response.message().toString())
+                Log.d("pppp","created traccar user")
             }
-        }
-        }
+
+            override fun onFailure(call: Call<String>, t: Throwable) {
+                Log.d("pppp", t.message.toString())
+                Log.d("pppp", "traccar user create fail ")
+            }
+
+        })
+    }
+
+
 
 
 }

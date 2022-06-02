@@ -6,21 +6,24 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -28,27 +31,23 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.lifecycle.MutableLiveData
-import coil.compose.rememberImagePainter
 import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
 import com.firefly.bikerr_compose.model.CartItem
-import com.firefly.bikerr_compose.screens.login.TextFieldState
-import com.google.android.libraries.places.internal.it
+import com.firefly.bikerr_compose.model.Product
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.gson.Gson
+import com.skydoves.landscapist.glide.GlideImage
 
 class ShopItemActivity : ComponentActivity() {
+    private var product: Product = Product("","","","","")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Bikerr_composeTheme {
-                // A surface container using the 'background' color from the theme
-                val itemName = remember { TextFieldState() }
-                val itemPrice = remember { TextFieldState() }
-                val itemImage = remember { TextFieldState() }
-                itemName.text = intent.getStringExtra("itemName").toString()
-                itemPrice.text = intent.getStringExtra("itemPrice").toString()
-                itemImage.text = intent.getStringExtra("itemImage").toString()
+                val gson = Gson()
+                product  = gson.fromJson(intent.getStringExtra("product"), Product::class.java)
+
                 // A surface container using the 'background' color from the theme
                 Scaffold(topBar = {
                     Row(
@@ -58,7 +57,7 @@ class ShopItemActivity : ComponentActivity() {
 
                         ) {
 
-                        Text(text = itemName.text, fontWeight = FontWeight.Bold, fontSize = 30.sp)
+                        Text(text = "Shop", fontWeight = FontWeight.Bold, fontSize = 30.sp)
                         Row(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
@@ -74,11 +73,8 @@ class ShopItemActivity : ComponentActivity() {
                     }
                 }) {
                     Column {
-                            items(
-                                itemImage,
-                                itemName,
-                                itemPrice,
-                                this@ShopItemActivity
+                            Items(
+                               product = product, this@ShopItemActivity
                             )
                     }
 
@@ -89,24 +85,33 @@ class ShopItemActivity : ComponentActivity() {
 }
 
 @Composable
-fun items(
-    itemImage: TextFieldState,
-    itemName: TextFieldState,
-    itemPrice: TextFieldState,
-    shopItemActivity: ShopItemActivity,
-) {
+fun Items(product: Product, shopItemActivity: ShopItemActivity) {
     var selectedTextquantity by remember { mutableStateOf("") }
     var selectedTextsize by remember { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Image(painter = rememberImagePainter(itemImage.text), contentDescription = "",modifier = Modifier.size(400.dp))
+
+
+        Row(Modifier.fillMaxWidth().padding(5.dp),horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
+            Text(text = product.Name.uppercase(), fontWeight = FontWeight.Bold, fontSize = 30.sp)
+        }
+        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                   ImageSliderShop( product )
                 }
 
+
                     Column(horizontalAlignment = Alignment.CenterHorizontally){
-                        Text(text = itemName.text, fontWeight = FontWeight.Bold)
-                        Row() {
-                            Text(modifier = Modifier.padding(start = 5.dp), text = "Price :", fontWeight = FontWeight.Bold)
-                            Text(modifier = Modifier.padding(start = 5.dp),text = "₹ ${itemPrice.text}")
+                        Row {
+                            Box(
+                                modifier = Modifier
+                                    .width(80.dp)
+                                    .height(40.dp)
+                                    .padding(start = 5.dp, end = 5.dp, top = 5.dp, bottom = 5.dp)
+                                    .clip(
+                                        RoundedCornerShape(5.dp)
+                                    )
+                                    .background(color = Color(0xFF737373)), contentAlignment = Alignment.Center) {
+                                Text(text = "₹"+product.Price, color = Color.White)
+                            }
                         }
                         Row(horizontalArrangement = Arrangement.Center) {
                             val sizeList = listOf("S","M","L", "XL")
@@ -139,12 +144,12 @@ fun items(
                                         .onGloballyPositioned { coordinates ->
                                             //This value is used to assign to the DropDown the same width
                                             textfieldquantity = coordinates.size.toSize()
-                                        },
+                                        }.clickable { expandedquantity = ! expandedquantity },
                                     label = {Text("Size")},
                                     trailingIcon = {
-                                        Icon(iconquantity,"contentDescription",
-                                            Modifier.clickable { expandedquantity = ! expandedquantity })
-                                    }
+                                        Icon(iconquantity,"contentDescription")
+                                    },
+                                    enabled = false
                                 )
                                 DropdownMenu(
                                     expanded = expandedquantity,
@@ -185,14 +190,14 @@ fun items(
                                         .onGloballyPositioned { coordinates ->
                                             //This value is used to assign to the DropDown the same width
                                             textfieldSize = coordinates.size.toSize()
-                                        },
+                                        }.clickable { expandedsize = !expandedsize },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next)
                                     ,
                                             label = {Text("Quantity")},
                                     trailingIcon = {
-                                        Icon(icon,"contentDescription",
-                                            Modifier.clickable { expandedsize = !expandedsize })
-                                    }
+                                        Icon(icon,"contentDescription",)
+                                    },
+                                    enabled = false
                                 )
                                 DropdownMenu(
                                     expanded = expandedsize,
@@ -218,19 +223,57 @@ fun items(
                                 .fillMaxWidth()
                                 .height(50.dp),
                             onClick = {
-                                val uid = FirebaseAuth.getInstance().uid
-                                val database = FirebaseDatabase.getInstance()
-                                val databaseRef = database.getReference("Cart")
-                                val cartitem = CartItem(itemName.text,itemPrice.text,itemImage.text,selectedTextsize , selectedTextquantity)
-                                databaseRef.child(uid!!).child(itemName.text).setValue(cartitem)
-                                    .addOnSuccessListener {
-                                        Toast.makeText(shopItemActivity, " Item Added to Cart", Toast.LENGTH_SHORT).show()
-                                        Log.d("addtocart", "Item Added to Cart")}
-                                    .addOnFailureListener { Log.d("addtocart", it.message.toString()) }
+                                if (selectedTextsize.isEmpty() && selectedTextquantity.isEmpty()){
+                                    Toast.makeText(shopItemActivity,"Please select Quantity and size",Toast.LENGTH_LONG).show()
+                                }
+                                else
+                                {
+                                    val uid = FirebaseAuth.getInstance().uid
+                                    val database = FirebaseDatabase.getInstance()
+                                    val databaseRef = database.getReference("Cart")
+                                    val cartItem = CartItem(product,selectedTextsize , selectedTextquantity)
+                                    databaseRef.child(uid!!).child(product.Name).setValue(cartItem)
+                                        .addOnSuccessListener {
+                                            Toast.makeText(shopItemActivity, " Item Added to Cart", Toast.LENGTH_SHORT).show()
+                                            Log.d("addtocart", "Item Added to Cart")}
+                                        .addOnFailureListener { Log.d("addtocart", it.message.toString()) }
+                                }
                             }
                         ) {
+                            Icon(imageVector = Icons.Default.AddShoppingCart, contentDescription = "")
                             Text(text = "Add To Cart")
-                        }
+                            }
                     }
     }
+}
+
+@Composable
+fun ImageSliderShop(
+   product: Product
+) {
+    val images = listOf(
+    product.Image1,product.Image2,product.Image3
+    )
+    Log.d("slid",images.toString())
+
+    com.firefly.bikerr_compose.common.Pager(
+        items = images,
+        modifier = Modifier
+            .width(400.dp)
+            .height(300.dp),
+        itemFraction = .75f,
+        overshootFraction = .75f,
+        initialIndex = 0,
+        itemSpacing = 60.dp,
+        contentFactory = { item ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                GlideImage(imageModel = item)
+
+            }
+        }
+    )
 }

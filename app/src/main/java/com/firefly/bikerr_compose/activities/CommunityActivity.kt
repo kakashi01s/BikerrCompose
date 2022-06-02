@@ -19,10 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContentProviderCompat.requireContext
-import coil.compose.rememberImagePainter
 import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
-import com.google.android.libraries.places.internal.fi
 import com.google.firebase.auth.FirebaseAuth
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QueryChannelsRequest
@@ -51,17 +48,12 @@ class CommunityActivity : ComponentActivity() {
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
-                          Button(onClick = {
-                              val intent = Intent(this@CommunityActivity,CommunityCreateActivity::class.java)
-                              startActivity(intent)
-                          }) {
-                              Text(text = "Create")
-                          }
+
                         }
                     }
                 }) {
                     channels.value.let {
-                        LazyColumn(){
+                        LazyColumn {
                             items(it){
                                ChannelItem(it)
                             }
@@ -74,11 +66,11 @@ class CommunityActivity : ComponentActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
-        val intent = Intent(this, MainActivityCompose::class.java)
+        val intent = Intent(this, ChannelActivity::class.java)
         startActivity(intent)
         finish()
     }
-    fun getChannels(){
+    private fun getChannels(){
         val request = QueryChannelsRequest(
             filter = Filters.and(
                 Filters.eq("type", "messaging"),
@@ -126,11 +118,10 @@ class CommunityActivity : ComponentActivity() {
                                 // Add members with ids
                                 channelClient.addMembers(listOf(uid)).enqueue { result ->
                                     if (result.isSuccess) {
-                                        val channel: Channel = result.data()
-                                        val intent =
+                                            val intent =
                                             Intent(this@CommunityActivity, ChannelActivity::class.java)
-                                        startActivity(intent)
-                                        finish()
+                                            startActivity(intent)
+                                            finish()
                                     } else {
                                         // Handle result.error()
                                         Log.d("joinchannel", result.error().message.toString())

@@ -1,7 +1,6 @@
 package com.firefly.bikerr_compose.activities
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
@@ -17,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
 
-class WebActivity() : ComponentActivity() {
+class WebActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

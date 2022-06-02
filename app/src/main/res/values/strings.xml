@@ -68,4 +68,14 @@
     <string name="title_activity_community">CommunityActivity</string>
     <string name="title_activity_community_create">CommunityCreateActivity</string>
     <string name="title_activity_comment">CommentActivity</string>
+    <string name="title_activity_add_device">AddDevice</string>
+    <string name="title_activity_traccar">TraccarActivity</string>
+    <string name="title_activity_traccar_history">TraccarHistory</string>
+    <string name="title_activity_rental">RentalActivity</string>
+    <string name="title_activity_rental_item">RentalItemActivity</string>
+    <string name="title_activity_rental_booking">RentalBookingActivity</string>
+    <string name="title_activity_checkout_booking">checkoutBookingActivity</string>
+    <string name="title_activity_my_listings">MyListingsActivity</string>
+    <string name="title_activity_create_listing">CreateListingActivity</string>
+    <string name="title_activity_my_profile">MyProfileActivity</string>
 </resources>

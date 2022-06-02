@@ -1,14 +1,18 @@
 package com.firefly.bikerr_compose.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.filled.DynamicFeed
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.SportsMotorsports
 import androidx.compose.ui.graphics.vector.ImageVector
 
+
 sealed class BottomBarScreen(
-    val route : String,
-    val title : String,
-    val icon : ImageVector){
+    val route: String,
+    val title: String,
+    val icon: ImageVector?
+){
     object Feed : BottomBarScreen(
         route = "feed",
         title = "Feed",
@@ -20,13 +24,18 @@ sealed class BottomBarScreen(
         icon = Icons.Default.ShoppingCart,
     )
     object Traccar : BottomBarScreen(
-        route = "traccar",
-        title = "Track",
-        icon = Icons.Default.MyLocation,
+        route = "rent",
+        title = "Rent",
+        icon = Icons.Default.SportsMotorsports,
     )
-    object Nearby : BottomBarScreen(
-        route = "Nearby",
-        title = "Nearby",
-        icon = Icons.Default.NearMe,
+    object Profile : BottomBarScreen(
+        route = "me",
+        title = "Me",
+        icon = Icons.Default.Person,
+    )
+    object Null : BottomBarScreen(
+        route = "",
+        title = "",
+        icon = null
     )
 }

@@ -1,35 +1,45 @@
 package com.firefly.bikerr_compose.screens.login
 
 
+import android.content.Intent
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import coil.compose.rememberImagePainter
+import com.firefly.bikerr_compose.R
+import com.firefly.bikerr_compose.activities.HeaderText
 import com.firefly.bikerr_compose.activities.LoginActivity
+import com.firefly.bikerr_compose.activities.WebActivity
 import com.firefly.bikerr_compose.viewmodel.ViewModellogin
+import com.skydoves.landscapist.glide.GlideImage
 
 
-class TextFieldState(){
+class TextFieldState {
     var text: String by mutableStateOf(value= "")
 }
 
@@ -39,44 +49,92 @@ fun RegisterScreen(
     loginActivity: LoginActivity,
     viewModel: ViewModellogin
 ) {
+    val showProgress = remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val email = remember { TextFieldState() }
     val userName = remember { TextFieldState() }
     val phoneNumber = remember { TextFieldState() }
-    Column(modifier = Modifier.padding(16.dp)) {
-        Spacer(modifier = Modifier.height(48.dp))
-        HeaderText()
-        Spacer(modifier = Modifier.height(64.dp))
-        UsernameTextField(username = userName,focusManager)
-        Spacer(modifier = Modifier.height(4.dp))
-        EmailTextField(email = email,focusManager)
-        Spacer(modifier = Modifier.height(4.dp))
-        PhoneNumberTextField(phone = phoneNumber,focusManager)
-        Spacer(modifier = Modifier.height(64.dp))
-        ButtonToLogin(onClick = {
-            if (email.text.isEmpty() or userName.text.isEmpty() or phoneNumber.text.isEmpty())
-            {
-                Log.d("login", "Empty Fields")
-            }
-            else
-            {
-              viewModel.loginTask(loginActivity,phoneNumber.text.trim(),navHostController,email.text,userName.text)
-            }
-        })
+    if (showProgress.value){
+        LinearProgressIndicator(color = Color.Black, backgroundColor = Color.LightGray, modifier = Modifier.fillMaxWidth())
     }
+
+
+            Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(modifier = Modifier.height(100.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    GlideImage(imageModel = R.drawable.bikerr_logo, modifier = Modifier.size(100.dp))
+                    HeaderText()
+                }
+                Spacer(modifier = Modifier.height(0.dp))
+                Card( modifier = Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        UsernameTextField(username = userName,focusManager)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        EmailTextField(email = email,focusManager)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        PhoneNumberTextField(phone = phoneNumber,focusManager)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        privacyPolicy(loginActivity)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        ButtonToLogin(onClick = {
+
+                            if (email.text.isEmpty() && userName.text.isEmpty() && phoneNumber.text.isEmpty())
+                            {
+                                Log.d("login", "Empty Fields")
+                                android.widget.Toast.makeText(loginActivity,"Please Fill All Fields", android.widget.Toast.LENGTH_LONG).show()
+                            }
+                            else
+                            {
+                                viewModel.loginTask(loginActivity,phoneNumber.text.trim(),navHostController,email.text,userName.text)
+                                showProgress.value = true
+                            }
+                        })
+                    }
+                }
+            }
+
+
 }
 
 
 @Composable
-private fun HeaderText() {
-    Text(
-        text = "Welcome,",
-        fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
-        color = Color.LightGray
-    )
-    Spacer(modifier = Modifier.height(2.dp))
-    Text(text = "Sign up to create an account,", fontWeight = FontWeight.Bold, fontSize = 26.sp, color = Color.Red)
+fun privacyPolicy(loginActivity: LoginActivity) {
+    val annotatedString = buildAnnotatedString {
+        append("By joining, you agree to the ")
+
+        pushStringAnnotation(tag = "policy", annotation = "https://google.com/policy")
+        withStyle(style = SpanStyle(color = Color(0xFF218ff7))) {
+            append("privacy policy")
+        }
+        pop()
+
+        append(" and ")
+
+        pushStringAnnotation(tag = "terms", annotation = "https://google.com/terms")
+
+        withStyle(style = SpanStyle(color = Color(0xFF218ff7))) {
+            append("terms of use")
+        }
+
+        pop()
+    }
+
+    ClickableText(text = annotatedString, style = MaterialTheme.typography.body1, onClick = { offset ->
+        annotatedString.getStringAnnotations(tag = "policy", start = offset, end = offset).firstOrNull()?.let {
+            val intent = Intent(loginActivity,WebActivity::class.java)
+            intent.putExtra("url",it.item)
+            loginActivity.startActivity(intent)
+        }
+
+        annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset).firstOrNull()?.let {
+            Log.d("terms URL", it.item)
+            val intent = Intent(loginActivity,WebActivity::class.java)
+            intent.putExtra("url",it.item)
+            loginActivity.startActivity(intent)
+        }
+    })
+
+
 }
 
 @Composable

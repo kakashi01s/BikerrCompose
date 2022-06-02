@@ -1,5 +1,6 @@
 package com.firefly.bikerr_compose.screens.home
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -12,9 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.AddComment
-import androidx.compose.material.icons.outlined.Chat
-import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,53 +26,58 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.firefly.bikerr_compose.activities.*
 import com.firefly.bikerr_compose.model.Feed
-import com.google.firebase.auth.FirebaseAuth
+import com.firefly.bikerr_compose.viewmodel.ViewModelmain
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jet.firestore.JetFirestore
 import com.jet.firestore.getListOfObjects
+import com.skydoves.landscapist.glide.GlideImage
+import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.ChatEventListener
+import io.getstream.chat.android.client.events.ChatEvent
 import kotlinx.coroutines.launch
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
-fun FeedScreen(mainActivityCompose: MainActivityCompose) {
+fun FeedScreen(mainActivityCompose: MainActivityCompose, mainViewModel: ViewModelmain) {
     var feedlist by remember { mutableStateOf(listOf<Feed>()) }
-    val bodyContent = remember { mutableStateOf("Body Content Here") }
+
 Scaffold(topBar = {
     Row(
         modifier = Modifier
             .padding(10.dp)
             .fillMaxWidth(),
     ) {
+
         Text( text = "Bikerr", fontWeight = FontWeight.Bold, fontSize = 30.sp)
         Row(Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
             IconButton(onClick = {
-                val intent = Intent(mainActivityCompose,CreatepostActivity::class.java)
-                mainActivityCompose.startActivity(intent)
-            }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "add post")
-            }
-            IconButton(onClick = {
                 val intent = Intent(mainActivityCompose,ChannelActivity::class.java)
                 mainActivityCompose.startActivity(intent)
             }) {
-                Icon(imageVector = Icons.Outlined.Chat, contentDescription = "add post")
+                BadgedBox(badge = { if (mainViewModel.unreadMessages.value > 0) {
+                    Badge {
+                        Text("${mainViewModel.unreadMessages.value}")
+                    }
+                } }) {
+                    Icon(imageVector = Icons.Outlined.Chat, contentDescription = "add post")
+                }
             }
-            Row() {
-                TopAppBarDropdownMenu(bodyContent = bodyContent,mainActivityCompose)
-            }
+
 
         }
     }
 })
 {
+    Divider(color = Color.LightGray, thickness = 5.dp)
 
     JetFirestore(path = {
         collection("Feed")
     },
-        onRealtimeCollectionFetch = { values, exception ->
+        onRealtimeCollectionFetch = { values, _ ->
             //When all documents are fetched
             //booksList = values.getListOfObjects()
             //When documents are fetched based on limit
@@ -87,7 +91,7 @@ Scaffold(topBar = {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceEvenly) {
                     items(it){
-                        getFeedItem(it,mainActivityCompose)
+                   //     getFeedItem(it,mainActivityCompose)
                     }
                 }
             }
@@ -95,29 +99,6 @@ Scaffold(topBar = {
 
     }
 }
-}
-
-@Composable
-fun getFeedItem(feed: Feed, mainActivityCompose: MainActivityCompose) {
-    var uname = remember { mutableStateOf("")}
-    var uImage = remember { mutableStateOf("")}
-    var feedlikes = remember { mutableStateOf(0)}
-    Log.d("nnnn", feed.uid)
-    val databaseRef: DatabaseReference?
-    databaseRef = FirebaseDatabase.getInstance().getReference("Users")
-    databaseRef.child(feed.uid).get().addOnSuccessListener {
-            if (it.exists())
-            {
-                 uname.value = it.child("userName").value as String
-                 uImage.value = it.child("userImage").value as String
-            }
-            else
-            {
-                Log.d("feed", "Failed to get uname")
-            }
-        }
-    FeedItem(feed,uImage.value,uname.value,mainActivityCompose)
-
 }
 
 @Composable
@@ -154,14 +135,11 @@ fun FeedItem(feed: Feed, uImage: String, uname: String, mainActivityCompose: Mai
                 horizontalArrangement = Arrangement.Start
             ) {
 // Profile Image
-                Image(
-                    alignment = Alignment.Center,
-                    painter = rememberImagePainter(uImage),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                )
+Image(painter = rememberImagePainter(data = uImage), contentDescription = "",
+    modifier = Modifier
+        .size(30.dp)
+        .clip(RoundedCornerShape(20.dp)),
+    alignment = Alignment.Center)
                 Spacer(modifier = Modifier.size(10.dp))
                 // Profile Name
                 Text(modifier = Modifier.fillMaxWidth(),
@@ -171,12 +149,22 @@ fun FeedItem(feed: Feed, uImage: String, uname: String, mainActivityCompose: Mai
                 )
             }
 //Feed Image
-            Image(
+            GlideImage( // CoilImage, FrescoImage
+                imageModel = feed.image,
                 modifier = Modifier.size(380.dp),
                 alignment = Alignment.Center,
-                painter = rememberImagePainter(feed.image),
-                contentDescription = ""
-            )
+                // shows an indicator while loading an image.
+                loading = {
+                    Box(modifier = Modifier.matchParentSize()) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                },
+                // shows an error text if fail to load an image.
+                failure = {
+                    Text(text = "image request failed.")
+                })
 // Caption
             Row(
                 Modifier
@@ -221,72 +209,16 @@ fun FeedItem(feed: Feed, uImage: String, uname: String, mainActivityCompose: Mai
                 Spacer(modifier = Modifier.size(5.dp))
 
                     IconButton(onClick = {
-                        val intent = Intent(mainActivityCompose,CommentActivity::class.java)
-                        intent.putExtra("feedId", feed.feedId)
-                        mainActivityCompose.startActivity(intent)
+
                     }) {
                         Icon(
                             imageVector = Icons.Outlined.AddComment,
                             contentDescription = "")
                     }
                 }
-
-
-
         }
     }
 }
 
 
 
-@Composable
-fun TopAppBarDropdownMenu(
-    bodyContent: MutableState<String>,
-    mainActivityCompose: MainActivityCompose
-) {
-    val expanded = remember { mutableStateOf(false) } // 1
-
-    Box(
-        Modifier
-            .wrapContentSize(Alignment.TopEnd)
-    ) {
-        IconButton(onClick = {
-            expanded.value = true // 2
-            bodyContent.value =  "Menu Opening"
-        }) {
-            Icon(
-                Icons.Filled.MoreVert,
-                contentDescription = "More Menu"
-            )
-        }
-    }
-
-    DropdownMenu(
-        expanded = expanded.value,
-        onDismissRequest = { expanded.value = false },
-    ) {
-        DropdownMenuItem(onClick = {
-            expanded.value = false // 3
-
-        }) {
-            Text("Settings")
-            Icon(imageVector = Icons.Default.Settings, contentDescription = null)
-        }
-
-        Divider()
-
-        DropdownMenuItem(onClick = {
-            expanded.value = false
-            FirebaseAuth.getInstance().signOut()
-            val intent = Intent(mainActivityCompose,LoginActivity::class.java)
-            mainActivityCompose.startActivity(intent)
-            mainActivityCompose.finish()
-        }) {
-            Text("Logout")
-            Icon(imageVector = Icons.Default.Logout, contentDescription = null)
-
-        }
-
-
-    }
-}

@@ -1,34 +1,51 @@
 package com.firefly.bikerr_compose.screens.map
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
 import android.util.Log
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.Toast
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import com.firefly.bikerr_compose.MainApplication
-import com.firefly.bikerr_compose.activities.MainActivityCompose
-import com.firefly.bikerr_compose.apiinterface.WebService
-import com.firefly.bikerr_compose.apiinterface.WebServiceCallback
-import com.firefly.bikerr_compose.model.traccar.User
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import com.firefly.bikerr_compose.R
+import com.firefly.bikerr_compose.activities.AddDevice
+import com.firefly.bikerr_compose.activities.TraccarActivity
+import com.firefly.bikerr_compose.activities.TraccarHistoryActivity
+import com.firefly.bikerr_compose.viewmodel.ViewModelTraccar
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.gson.GsonBuilder
-import okhttp3.JavaNetCookieJar
-import okhttp3.OkHttpClient
-import retrofit2.Call
-import retrofit2.Response
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.net.CookieManager
-import java.net.CookiePolicy
-import java.util.*
-import java.util.concurrent.TimeUnit
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 @Composable
-fun TraccarScreen(mainActivityCompose: MainActivityCompose) {
+fun TraccarScreen(mainActivityCompose: TraccarActivity, traccarViewModel: ViewModelTraccar) {
  val uid = FirebaseAuth.getInstance().uid
     val email = remember {
         mutableStateOf("")
@@ -51,56 +68,140 @@ fun TraccarScreen(mainActivityCompose: MainActivityCompose) {
             Log.d("feed", "Failed to get uname")
         }
     }
-    CreateTraccarUser(mainActivityCompose,email.value,phone.value)
+
+    GoogleMaps(mainActivityCompose,traccarViewModel)
+   // session()
 }
 
 @Composable
-fun CreateTraccarUser(mainActivityCompose: MainActivityCompose, email: String, pass: String) {
+fun GoogleMaps(mainActivityCompose: TraccarActivity, traccarViewModel: ViewModelTraccar) {
+    val mapView = rememberMapViewWithLifecycle()
+    val pickup: MutableLiveData<LatLng> by lazy { MutableLiveData<LatLng>() }
 
-    val url = "http://13.232.143.186:8082"
-    var client: OkHttpClient? = null
-    var retrofit: Retrofit? = null
-    var user: com.firefly.bikerr_compose.model.User? = null
-    val callbacks: MutableList<MainApplication.GetServiceCallback> = LinkedList()
-    val cookieManager = CookieManager()
-    cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL)
-    client = OkHttpClient.Builder()
-        .readTimeout(0, TimeUnit.MILLISECONDS)
-        .cookieJar(JavaNetCookieJar(cookieManager)).build()
-    try {
-        val gson = GsonBuilder().setLenient()
-        retrofit = Retrofit.Builder()
-            .baseUrl(url)
-            .addConverterFactory(GsonConverterFactory.create(gson.create()))
-            .build()
-    } catch (e: IllegalArgumentException) {
-        Toast.makeText(mainActivityCompose, e.message, Toast.LENGTH_LONG).show()
-        Log.d("tttt", e.message.toString())
+    Scaffold(
+        modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth()
+            .background(Color.White)
+    , floatingActionButton = {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
+
+                FloatingActionButton(onClick = { /*TODO*/ }, backgroundColor = Color.White) {
+                    IconButton(onClick = {
+                        val intent  = Intent(mainActivityCompose,TraccarHistoryActivity::class.java)
+                        mainActivityCompose.startActivity(intent)
+                        mainActivityCompose.finish()
+                    }) {
+                        Icon(imageVector = Icons.Default.History, contentDescription = "", tint = Color.DarkGray)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                FloatingActionButton(onClick = { /*TODO*/ }, backgroundColor = Color.White) {
+                    IconButton( onClick = {
+                        val intent = Intent(mainActivityCompose,AddDevice::class.java)
+                        mainActivityCompose.startActivity(intent)
+                    }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription ="",tint = Color.DarkGray)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                FloatingActionButton(onClick = { /*TODO*/ }, backgroundColor = Color.White) {
+                    IconButton(onClick = {
+
+                        pickup.observe(mainActivityCompose) {
+                            val gmmIntentUri =
+                                Uri.parse("google.navigation:q=${it.latitude},${it.longitude}")
+                            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                            mapIntent.setPackage("com.google.android.apps.maps")
+                            mainActivityCompose.startActivity(mapIntent)
+                            mainActivityCompose.finish()
+
+                        }
+
+                    }) {
+                        Icon(imageVector = Icons.Default.Navigation, contentDescription = "",tint = Color.DarkGray)
+                    }
+                }
+            }
+
+        }, floatingActionButtonPosition = FabPosition.End,
+    isFloatingActionButtonDocked = false) {
+        AndroidView({ mapView}) {mapView->
+            CoroutineScope(Dispatchers.Main).launch {
+                var lat: Float
+                var lon: Float
+                traccarViewModel.latitude.observe(mainActivityCompose) { data ->
+                    Log.d("yyyy", data.toString())
+                    lat = data
+                    traccarViewModel.longitude.observe(mainActivityCompose) { data ->
+                        Log.d("yyyy", data.toString())
+                        lon = data
+
+                        pickup.postValue(LatLng(lat.toDouble(), lon.toDouble()))
+                        pickup.observe(mainActivityCompose) {
+                            val map = mapView.getMapAsync { map ->
+                                map.isBuildingsEnabled = true
+                                map.uiSettings.isMyLocationButtonEnabled = true
+                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 18f))
+                                val markerOptions = MarkerOptions()
+                                    .title("MyBike")
+                                    .position(it)
+                                    .icon(BitmapDescriptorFactory.fromResource(android.R.drawable.ic_menu_mylocation))
+                                map.addMarker(markerOptions)
+                                Log.d("yyyy", it.toString())
+
+                            }
+                        }
+
+                    }
+
+                }
+
+
+            }
+        }
     }
-    val service: WebService = retrofit!!.create(WebService::class.java)
-    service.addSession(email, pass).enqueue(object : WebServiceCallback<com.firefly.bikerr_compose.model.User?>(mainActivityCompose) {
-        override fun onSuccess(response: Response<com.firefly.bikerr_compose.model.User?>?) {
-            mainActivityCompose.service = service
-            user = response!!.body()
-            for (callback in callbacks) {
-                callback.onServiceReady(client, retrofit, service)
-            }
-            Log.d("tttt",user.toString())
-            callbacks.clear()
-        }
-
-        override fun onFailure(call: Call<com.firefly.bikerr_compose.model.User?>, t: Throwable) {
-            var handled = false
-            for (callback in callbacks) {
-                handled = callback.onFailure()
-            }
-            callbacks.clear()
-            if (!handled) {
-                super.onFailure(call, t)
-            }
-        }
-
-
-    })
 }
+
+@Composable
+fun rememberMapViewWithLifecycle(): MapView {
+    val context = LocalContext.current
+    val mapView = remember {
+        MapView(context).apply {
+            id = R.id.map
+        }
+    }
+
+    // Makes MapView follow the lifecycle of this composable
+    val lifecycleObserver = rememberMapLifecycleObserver(mapView)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        lifecycle.addObserver(lifecycleObserver)
+        onDispose {
+            lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+
+    return mapView
+}
+
+@Composable
+fun rememberMapLifecycleObserver(mapView: MapView): LifecycleEventObserver =
+    remember(mapView) {
+        LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
+                Lifecycle.Event.ON_START -> mapView.onStart()
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
+                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                else -> throw IllegalStateException()
+            }
+        }
+    }
 
