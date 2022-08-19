@@ -1,7 +1,6 @@
 package com.firefly.bikerr_compose.activities
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
@@ -10,24 +9,26 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.firefly.bikerr_compose.R
 import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
 import com.firefly.bikerr_compose.apiinterface.RazorpayApiInterface
 import com.firefly.bikerr_compose.model.Booking
+import com.firefly.bikerr_compose.model.MyBookings
 import com.firefly.bikerr_compose.model.Order
 import com.firefly.bikerr_compose.model.Users
 import com.firefly.bikerr_compose.model.rental.Vehicle
-import com.firefly.bikerr_compose.screens.login.TextFieldState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,12 +38,15 @@ import com.pixplicity.easyprefs.library.Prefs
 import com.razorpay.Checkout
 import com.razorpay.PaymentData
 import com.razorpay.PaymentResultWithDataListener
+import com.skydoves.landscapist.glide.GlideImage
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -57,6 +61,7 @@ class CheckoutBookingActivity : ComponentActivity(), PaymentResultWithDataListen
     private var item: Vehicle? = null
     private var startDate: String? = null
     private var endDate: String? = null
+    val loading = mutableStateOf(false)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,11 +79,7 @@ class CheckoutBookingActivity : ComponentActivity(), PaymentResultWithDataListen
             item  = gson.fromJson(intent.getStringExtra("vehicle"), Vehicle::class.java)
             startDate = intent.getStringExtra("startDate")
             endDate = intent.getStringExtra("endDate")
-
-
-
             val vehicle : Vehicle = item!!
-            Log.d("hahahaha", vehicle.price)
             Bikerr_composeTheme {
 
                 Scaffold(topBar = {
@@ -93,7 +94,17 @@ class CheckoutBookingActivity : ComponentActivity(), PaymentResultWithDataListen
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
-                            Text(text = vehicle.price)
+                            Box(
+                                modifier = Modifier
+                                    .width(80.dp)
+                                    .height(40.dp)
+                                    .padding(start = 5.dp, end = 5.dp, top = 5.dp, bottom = 5.dp)
+                                    .clip(
+                                        RoundedCornerShape(5.dp)
+                                    )
+                                    .background(color = Color(0xFF1cca30)), contentAlignment = Alignment.Center) {
+                                Text(text = "₹"+vehicle.price, color = Color.White)
+                            }
                             Button(onClick = {
                                     val amount = vehicle.price
 
@@ -109,20 +120,32 @@ class CheckoutBookingActivity : ComponentActivity(), PaymentResultWithDataListen
                         }
                     }
                 }) {
-                    Column {
+                    Column (verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally){
                         StrictMode.setThreadPolicy(
                             StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build()
                         )
 
-                        Text(text = item.toString())
+                        com.skydoves.landscapist.glide.GlideImage(imageModel = item!!.image1,Modifier.size(300.dp))
+                        Text(text = item!!.name)
+                        Text(text = item!!.Brand)
+                        Text(text = item!!.location)
+                        Text(text = "The PickUP and Owner Details will be mailed to your Registered Email Address")
                     }
 
+
+                    if (loading.value){
+                        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
                 }
             }
         }
     }
 
     private fun getOrderId(amount: String) {
+        loading.value = true
         val map = HashMap<String, String>()
         map["amount"] = amount
         retroInterface.getOrderId(map).enqueue(object : Callback<Order> {
@@ -161,25 +184,30 @@ class CheckoutBookingActivity : ComponentActivity(), PaymentResultWithDataListen
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onPaymentSuccess(p0: String?, p1: PaymentData?) {
         val map = HashMap<String, String>()
         map["orderId"] = p0.toString()
         map["payment_Id"] = p1!!.paymentId.toString()
         map["signature"] = p1.signature.toString()
         map["items"] = Gson().toJson(item).toString()
+        val current = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        val formatted = current.format(formatter)
+        val start = startDate?.format(formatter)
+        val end = endDate?.format(formatter)
 
-        val bookingItem = Booking(p0.toString(), startDate = startDate,endDate = endDate, buyer = Users(Prefs.getString("userName"),Prefs.getString("userEmail"),Prefs.getString("userPhone"),Prefs.getString("userImage"),Prefs.getString("userId")))
+
+        val bookingItem = MyBookings(p0.toString(), startDate = start, endDate = end, buyer = Users(Prefs.getString("userName"),Prefs.getString("userEmail"),Prefs.getString("userPhone"),Prefs.getString("userImage"),Prefs.getString("userId")),
+            item!!
+        )
                 val customerMap = HashMap<String, String>()
                 customerMap["orderId"] = p0.toString()
                 customerMap["Owner"] = item!!.owner.toString()
                 customerMap["OwnerMail"] = item!!.owner.userEmail
-
                 customerMap["regNumber"] = item!!.regNumber
                 customerMap["pickUpAddress"] = item!!.pickupAddress
-
-
                 retroInterface.updateTransaction(map).enqueue(object : Callback<String> {
-                    @RequiresApi(Build.VERSION_CODES.O)
                     override fun onResponse(call: Call<String>, response: Response<String>) {
                         if (response.body().equals("success")) {
                             Toast.makeText(
@@ -188,29 +216,40 @@ class CheckoutBookingActivity : ComponentActivity(), PaymentResultWithDataListen
                                 Toast.LENGTH_LONG
                             ).show()
 
-                            val current = LocalDateTime.now()
-                            val formatter = DateTimeFormatter.BASIC_ISO_DATE
-                            val formatted = current.format(formatter)
+                            fs.collection("Rental").document(item!!.regNumber).collection("bookings").document(p0.toString()).set(bookingItem).addOnSuccessListener {
+                                db.getReference("RentalBookings").child(uid!!).child(p0.toString()).setValue(bookingItem).addOnSuccessListener {
 
-                            fs.collection("Rental").document(item!!.regNumber).collection("bookings").document(p0.toString()).set(bookingItem)
+                                    // Need to send Email
 
-                            db.getReference("RentalBookings").child(Prefs.getString("userId")).child(formatted).child(p0.toString()).setValue(bookingItem)
-                            retroInterface.sendEmail(customerMap).enqueue(object :
-                                Callback<String> {
-                                override fun onResponse(
-                                    call: Call<String>,
-                                    response: Response<String>
-                                ) {
-                                    Toast.makeText(this@CheckoutBookingActivity,"Booking Made",Toast.LENGTH_LONG).show()
-                                    this@CheckoutBookingActivity.finish()
-                                    Log.d("Emailconfirm", "Email confirm")
+                                    retroInterface.sendEmail(customerMap).enqueue(object : Callback<String> {
+                                        override fun onResponse(
+                                            call: Call<String>,
+                                            response: Response<String>
+                                        ) {
+                                            loading.value = false
+                                            Toast.makeText(this@CheckoutBookingActivity,"Booking Made",Toast.LENGTH_LONG).show()
+                                            val builder = android.app.AlertDialog.Builder(this@CheckoutBookingActivity)
+                                            builder.setTitle("Listing Created")
+                                            builder.setIcon(R.drawable.bikerr_logo)
+                                            builder.setMessage("You will soon receive all the details of your vehicle on your E-mail")
+                                            builder.setPositiveButton("OK") { dialog, which ->
+                                                dialog.dismiss()
+                                                this@CheckoutBookingActivity.finish()
+                                            }
+
+                                            builder.show()
+
+                                            Log.d("Emailconfirm", "Email confirm")
+                                        }
+
+                                        override fun onFailure(call: Call<String>, t: Throwable) {
+                                            Log.d("Emailconfirm", "Email fail")
+                                        }
+
+                                    })
                                 }
+                            }
 
-                                override fun onFailure(call: Call<String>, t: Throwable) {
-                                    Log.d("Emailconfirm", "Email fail")
-                                }
-
-                            })
                         }
                     }
 
@@ -225,6 +264,7 @@ class CheckoutBookingActivity : ComponentActivity(), PaymentResultWithDataListen
     override fun onPaymentError(p0: Int, p1: String?, p2: PaymentData?) {
         Toast.makeText(this, "Payment failed", Toast.LENGTH_LONG).show()
     }
+
 
 
 }

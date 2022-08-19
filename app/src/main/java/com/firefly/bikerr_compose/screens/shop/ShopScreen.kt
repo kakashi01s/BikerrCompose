@@ -27,13 +27,13 @@ import androidx.compose.ui.unit.sp
 import com.firefly.bikerr_compose.activities.*
 import com.firefly.bikerr_compose.model.Categories
 import com.firefly.bikerr_compose.model.Stores
-import com.firefly.bikerr_compose.viewmodel.ViewModelmain
+import com.firefly.bikerr_compose.viewmodel.MainViewModel
 import com.skydoves.landscapist.ShimmerParams
 import com.skydoves.landscapist.glide.GlideImage
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun ShopScreen(mainActivity: MainActivityCompose, mainViewModel: ViewModelmain)
+fun ShopScreen(mainActivity: MainActivityCompose, mainViewModel: MainViewModel)
 {
     var sparePartslist by remember { mutableStateOf(listOf<Stores>()) }
     var categorylist by remember { mutableStateOf(listOf<Categories>()) }
@@ -50,11 +50,16 @@ fun ShopScreen(mainActivity: MainActivityCompose, mainViewModel: ViewModelmain)
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
-                            IconButton(onClick = {
-                                val intent = Intent(mainActivity, CartActivity::class.java)
-                                mainActivity.startActivity(intent)
-                            }) {
-                                Icon(imageVector = Icons.Default.ShoppingCart, contentDescription = "cart")
+                            Card(shape = RoundedCornerShape(20.dp), elevation = 5.dp, backgroundColor = Color.LightGray) {
+                                IconButton(onClick = {
+                                    val intent = Intent(mainActivity, CartActivity::class.java)
+                                    mainActivity.startActivity(intent)
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.ShoppingCart,
+                                        contentDescription = "cart"
+                                    )
+                                }
                             }
                         }
             }
@@ -64,7 +69,7 @@ fun ShopScreen(mainActivity: MainActivityCompose, mainViewModel: ViewModelmain)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(650.dp)
+                .fillMaxHeight()
         ) {
 
             // Spare Parts List

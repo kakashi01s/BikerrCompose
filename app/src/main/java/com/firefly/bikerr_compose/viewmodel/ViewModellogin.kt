@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.navigation.NavHostController
 import com.firefly.bikerr_compose.activities.LoginActivity
@@ -17,6 +18,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.gson.GsonBuilder
 import com.pixplicity.easyprefs.library.Prefs
+import kotlinx.coroutines.NonCancellable.children
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -28,10 +30,11 @@ import java.util.concurrent.TimeUnit
 class ViewModellogin(application: Application): AndroidViewModel(application) {
     private val auth = FirebaseAuth.getInstance()
     var cred: String? = null
-    private lateinit var databaseref : DatabaseReference
+    private lateinit var databaseref: DatabaseReference
 
     private lateinit var retrofit: Retrofit
     private lateinit var retroInterface: TraccarApiInterface
+
 
     //Start Login
     fun loginTask(
@@ -79,8 +82,8 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
                 // now need to ask the user to enter the code and then construct a credential
                 // by combining the code with a verification ID.
                 Log.d("login", "onCodeSent:$verificationId")
-                 cred  = verificationId
-                    navHostcontroller.navigate("verify_otp_Screen/$username,$email,$phoneNumber")
+                cred = verificationId
+                navHostcontroller.navigate("verify_otp_Screen/$username,$email,$phoneNumber")
                 // Save verification ID and resending token so we can use them later
 //            storedVerificationId = verificationId
 //            resendToken = token
@@ -97,7 +100,6 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
     }
 
 
-
     // Verify OTP
     fun verifyAuthentication(
         otpText: String,
@@ -106,8 +108,8 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
         email: String,
         phone: String
     ) {
-        val phoneAuthCredential = PhoneAuthProvider.getCredential(cred.toString(),otpText)
-        signInWithPhoneAuthCredential(phoneAuthCredential,loginActivity,username,email,phone)
+        val phoneAuthCredential = PhoneAuthProvider.getCredential(cred.toString(), otpText)
+        signInWithPhoneAuthCredential(phoneAuthCredential, loginActivity, username, email, phone)
     }
 
 
@@ -125,15 +127,26 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d("login", "signInWithCredential:success")
                     val firebaseUser = task.result.user!!.uid
-                    Prefs.putString("userId",firebaseUser)
-                    Prefs.putString("userName",username)
-                    Prefs.putString("userPhone",phone)
-                    Prefs.putString("userEmail",email)
-                    Prefs.putString("userImage","https://firebasestorage.googleapis.com/v0/b/bikerrapp-9ba1d.appspot.com/o/pfp.png?alt=media&token=1e3b49b6-f607-4411-9d31-223182136f52")
+                    Prefs.putString("userId", firebaseUser)
+                    Prefs.putString("userName", username)
+                    Prefs.putString("userPhone", phone)
+                    Prefs.putString("userEmail", email)
+                    Prefs.putString(
+                        "userImage",
+                        "https://firebasestorage.googleapis.com/v0/b/bikerrapp-9ba1d.appspot.com/o/pfp.png?alt=media&token=1e3b49b6-f607-4411-9d31-223182136f52"
+                    )
                     databaseref = FirebaseDatabase.getInstance().getReference("Users")
-                    val users = Users(username,email,phone,"https://firebasestorage.googleapis.com/v0/b/bikerrapp-9ba1d.appspot.com/o/pfp.png?alt=media&token=1e3b49b6-f607-4411-9d31-223182136f52",firebaseUser)
-                    sendDataToFirebase(users,firebaseUser,databaseref,loginActivity)
-                  loginActivity.startActivity(Intent(loginActivity, MainActivityCompose::class.java))
+                    val users = Users(
+                        username,
+                        email,
+                        phone,
+                        "https://firebasestorage.googleapis.com/v0/b/bikerrapp-9ba1d.appspot.com/o/pfp.png?alt=media&token=1e3b49b6-f607-4411-9d31-223182136f52",
+                        firebaseUser
+                    )
+                    sendDataToFirebase(users, firebaseUser, databaseref, loginActivity)
+                    val intent = Intent(loginActivity, MainActivityCompose::class.java)
+                    loginActivity.startActivity(intent)
+                    loginActivity.finish()
                 } else {
                     // Sign in failed, display a message and update the UI
                     Log.w("login", "signInWithCredential:failure", task.exception)
@@ -160,10 +173,10 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
             .build()
         retroInterface = retrofit.create(TraccarApiInterface::class.java)
 
-        traccarlogin(retroInterface,users)
+        traccarlogin(retroInterface, users)
         databaseRef.child(firebaseUser).setValue(users).addOnSuccessListener {
             Toast.makeText(loginActivity, "User Registered Successfully", Toast.LENGTH_LONG).show()
-            Log.d("register","User Registered Successfully")
+            Log.d("register", "User Registered Successfully")
         }.addOnFailureListener {
             Toast.makeText(loginActivity, "User Registration Error", Toast.LENGTH_LONG).show()
             Log.d("register", it.message.toString())
@@ -180,8 +193,8 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
         map["password"] = "1234567890"
         retroInterface.createTraccarUser(map = map).enqueue(object : Callback<String> {
             override fun onResponse(call: Call<String>, response: Response<String>) {
-                Log.d("pppp",response.message().toString())
-                Log.d("pppp","created traccar user")
+                Log.d("pppp", response.message().toString())
+                Log.d("pppp", "created traccar user")
             }
 
             override fun onFailure(call: Call<String>, t: Throwable) {
@@ -191,8 +204,5 @@ class ViewModellogin(application: Application): AndroidViewModel(application) {
 
         })
     }
-
-
-
-
 }
+

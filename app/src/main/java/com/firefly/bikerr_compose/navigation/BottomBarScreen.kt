@@ -1,10 +1,7 @@
 package com.firefly.bikerr_compose.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DynamicFeed
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.SportsMotorsports
+import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
 
@@ -15,23 +12,23 @@ sealed class BottomBarScreen(
 ){
     object Feed : BottomBarScreen(
         route = "feed",
-        title = "Feed",
+        title = "",
         icon = Icons.Default.DynamicFeed,
     )
     object Shop : BottomBarScreen(
         route = "shop",
-        title = "Shop",
+        title = "",
         icon = Icons.Default.ShoppingCart,
     )
     object Traccar : BottomBarScreen(
         route = "rent",
-        title = "Rent",
+        title = "",
         icon = Icons.Default.SportsMotorsports,
     )
     object Profile : BottomBarScreen(
         route = "me",
-        title = "Me",
-        icon = Icons.Default.Person,
+        title = "",
+        icon = Icons.Default.AccountCircle,
     )
     object Null : BottomBarScreen(
         route = "",

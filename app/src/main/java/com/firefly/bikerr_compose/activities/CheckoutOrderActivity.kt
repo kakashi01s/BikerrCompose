@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.firefly.bikerr_compose.R
 import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
 import com.firefly.bikerr_compose.apiinterface.RazorpayApiInterface
 import com.firefly.bikerr_compose.model.CartItem
@@ -193,7 +194,7 @@ class CheckoutOrderActivity : ComponentActivity(), PaymentResultWithDataListener
         OutlinedTextField(
             value = address.text,
             onValueChange = { address.text = it },
-            label = { Text(text = "Username") },
+            label = { Text(text = "Address") },
             leadingIcon = { Icon(imageVector = Icons.Filled.MyLocation, contentDescription = "") },
             modifier = Modifier.fillMaxWidth(),
             keyboardActions = KeyboardActions(onNext = {
@@ -211,7 +212,7 @@ class CheckoutOrderActivity : ComponentActivity(), PaymentResultWithDataListener
         OutlinedTextField(
             value = pincode.text,
             onValueChange = { pincode.text = it },
-            label = { Text(text = "Username") },
+            label = { Text(text = "Pincode") },
             leadingIcon = { Icon(imageVector = Icons.Filled.Pin, contentDescription = "Usericon") },
             modifier = Modifier.fillMaxWidth(),
             keyboardActions = KeyboardActions(onNext = {
@@ -309,8 +310,17 @@ class CheckoutOrderActivity : ComponentActivity(), PaymentResultWithDataListener
                                 }
 
                             })
-                            val intent = Intent(this@CheckoutOrderActivity, MainActivityCompose::class.java)
-                            startActivity(intent)
+                            val builder = android.app.AlertDialog.Builder(this@CheckoutOrderActivity)
+                            builder.setTitle("Order Placed")
+                            builder.setIcon(R.drawable.bikerr_logo)
+                            builder.setMessage("Congratulations Your Order Is Confirmed")
+                            builder.setPositiveButton("OK") { dialog, which ->
+                                val intent = Intent(this@CheckoutOrderActivity, MainActivityCompose::class.java)
+                                startActivity(intent)
+                            }
+
+                            builder.show()
+
                         }
                     }
 

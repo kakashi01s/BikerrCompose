@@ -6,15 +6,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,7 +32,7 @@ class CommunityActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Bikerr_composeTheme {
-                getChannels()
+                getChannels(client,channels)
                 // A surface container using the 'background' color from the theme
                 Scaffold(topBar = {
                     Row(
@@ -59,42 +57,13 @@ class CommunityActivity : ComponentActivity() {
                             }
                         }
                     }
+
                 }
             }
         }
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-        val intent = Intent(this, ChannelActivity::class.java)
-        startActivity(intent)
-        finish()
-    }
-    private fun getChannels(){
-        val request = QueryChannelsRequest(
-            filter = Filters.and(
-                Filters.eq("type", "messaging"),
-            ),
-            offset = 0,
-            limit = 10,
-            querySort = QuerySort.desc("last_message_at")
-        ).apply {
-            watch = true
-            state = true
-        }
 
-        client.queryChannels(request).enqueue { result ->
-            if (result.isSuccess) {
-              channels.value = result.data()
-                Log.d("searchch" , channels.toString())
-            } else {
-                // Handle result.error()
-                Log.d("searchch", result.error().message.toString())
-               // Toast.makeText(requireContext(), "Error Fetching Channels", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-    }
 
     @Composable
     fun ChannelItem(channel: Channel) {
@@ -143,6 +112,31 @@ class CommunityActivity : ComponentActivity() {
             }
 
 
+@Composable
+fun getChannels(client: ChatClient, channels: MutableState<List<Channel>>) {
+    val request = QueryChannelsRequest(
+        filter = Filters.or(
+            Filters.eq("type", "messaging"),
+        ),
+        offset = 0,
+        limit = 10,
+        querySort = QuerySort.desc("last_message_at")
+    ).apply {
+        watch = true
+        state = true
+    }
 
+    client.queryChannels(request).enqueue { result ->
+        if (result.isSuccess) {
+            channels.value = result.data()
+            Log.d("searchch" , channels.toString())
+        } else {
+            // Handle result.error()
+            Log.d("searchch", result.error().message.toString())
+            // Toast.makeText(requireContext(), "Error Fetching Channels", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+}
 
 

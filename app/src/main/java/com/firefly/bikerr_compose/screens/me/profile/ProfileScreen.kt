@@ -37,6 +37,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.pixplicity.easyprefs.library.Prefs
 import com.skydoves.landscapist.glide.GlideImage
+import gen._base._base_java__rjava_resources.srcjar.R.id.text
 
 
 @Composable
@@ -85,10 +86,7 @@ Log.d("uriii",profileImageUri.uri.toString())
                     PhoneNumberTextFieldPr(phoneNumber)
                     ButtonToUpdatePr {
                         val firebaseUser = FirebaseAuth.getInstance().currentUser!!.uid
-                        Prefs.putString("userName",userName.text)
-                        Prefs.putString("userEmail",email.text)
-                        Prefs.putString("userPhone",phoneNumber.text)
-                        Prefs.putString("userImage",profileImageUri.uri.toString())
+
                         val refStorage =
                             FirebaseStorage.getInstance().reference.child("Profile/${firebaseUser}")
                         refStorage.putFile(profileImageUri.uri!!)
@@ -120,6 +118,7 @@ fun updateProfile(
     activity: MyProfileActivity
 ) {
     databaseRef.child(firebaseUser).setValue(users).addOnSuccessListener {
+
         Toast.makeText(activity, "Profile Updated", Toast.LENGTH_LONG).show()
         Log.d("update","Profile Updated Successfully")
     }.addOnFailureListener {

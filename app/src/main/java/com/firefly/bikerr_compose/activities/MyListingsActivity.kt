@@ -13,7 +13,9 @@ class MyListingsActivity : ComponentActivity(){
     private val viewModel by viewModels<ViewModelMyListings>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
+            viewModel.getRentals()
             Bikerr_composeTheme {
                   MyListingsScreen(this,viewModel)
 

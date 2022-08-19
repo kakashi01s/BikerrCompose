@@ -26,14 +26,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.firefly.bikerr_compose.R
 import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
+import com.firefly.bikerr_compose.model.MyRides
 import com.firefly.bikerr_compose.screens.login.TextFieldState
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.events.UserUpdatedEvent
 import io.getstream.chat.android.client.models.Channel
+import io.grpc.InternalChannelz.id
 
 class CommunityCreateActivity : ComponentActivity() {
     private val client = ChatClient.instance()
+    private var db: FirebaseFirestore = FirebaseFirestore.getInstance()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -71,21 +77,35 @@ class CommunityCreateActivity : ComponentActivity() {
                                     //adding elements to the hashMap using
                                     // put() function
                                 hashMap["name"] = name
-                                    val channelClient = client.channel(channelType = "messaging", channelId = id)
-                                    channelClient.create(memberIds = listOf(uid) ,extraData =  hashMap).enqueue { result ->
-                                        if (result.isSuccess) {
-                                            val newChannel: Channel = result.data()
 
-                                            Log.d("newchannel", newChannel.id)
-                                            val intent = Intent(this@CommunityCreateActivity , ChannelActivity::class.java)
-                                            startActivity(intent)
-                                            finish()
-                                            Toast.makeText(this@CommunityCreateActivity, "Channel Created", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Log.d("newchannel", result.error().message.toString())
-                                            Toast.makeText(this@CommunityCreateActivity, "Error Creating Channel", Toast.LENGTH_SHORT).show()
+                                val hashMapch : HashMap<String, Any>
+                                        = HashMap()
+                                //adding elements to the hashMap using
+                                // put() function
+                                hashMapch["cid"] = "messaging:$id"
+
+
+                                db.collection("Rides").document(hashMapch["cid"].toString()).set(hashMapch)
+                                    .addOnSuccessListener {
+                                        Log.d("chch", "added")
+                                        val channelClient = client.channel(channelType = "messaging", channelId = id)
+                                        channelClient.create(memberIds = listOf(uid) ,extraData =  hashMap).enqueue { result ->
+                                            if (result.isSuccess) {
+                                                val newChannel: Channel = result.data()
+                                                val intent = Intent(this@CommunityCreateActivity,ChannelActivity::class.java)
+                                                startActivity(intent)
+                                                this@CommunityCreateActivity.finish()
+                                                Log.d("newchannel", newChannel.id)
+                                            } else {
+                                                Log.d("newchannel", result.error().message.toString())
+                                                Toast.makeText(this@CommunityCreateActivity, "Error Creating Channel", Toast.LENGTH_SHORT).show()
+                                            }
                                         }
                                     }
+                                    .addOnFailureListener {
+                                        Toast.makeText(this@CommunityCreateActivity,"Error Creating Channel.",Toast.LENGTH_LONG).show()
+                                    }
+
                             }) {
                                 Text(text = "Create")
                             }
@@ -96,6 +116,9 @@ class CommunityCreateActivity : ComponentActivity() {
             }
         }
     }
+
+
+
 }
 
 

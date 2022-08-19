@@ -3,7 +3,6 @@ package com.firefly.bikerr_compose.screens.me
 import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,29 +18,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import com.firefly.bikerr_compose.activities.LoginActivity
-import com.firefly.bikerr_compose.activities.MainActivityCompose
-import com.firefly.bikerr_compose.activities.MyListingsActivity
-import com.firefly.bikerr_compose.activities.MyProfileActivity
+import com.firefly.bikerr_compose.activities.*
 import com.firefly.bikerr_compose.model.Users
 import com.firefly.bikerr_compose.screens.login.TextFieldState
 import com.firefly.bikerr_compose.screens.me.listing.ImageUriState
-import com.firefly.bikerr_compose.screens.me.profile.*
-import com.firefly.bikerr_compose.screens.me.profile.ProfileHeader
-import com.firefly.bikerr_compose.viewmodel.ViewModelmain
+import com.firefly.bikerr_compose.viewmodel.MainViewModel
+import com.google.android.gms.common.api.Api
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.storage.FirebaseStorage
 import com.pixplicity.easyprefs.library.Prefs
 import com.skydoves.landscapist.glide.GlideImage
+import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.models.Device
+import io.getstream.chat.android.client.models.PushProvider
 
 @Composable
-fun MeScreen(mainActivityCompose: MainActivityCompose, mainViewModel: ViewModelmain) {
+fun MeScreen(mainActivityCompose: MainActivityCompose, mainViewModel: MainViewModel) {
     val bodyContent = remember { mutableStateOf("Body Content Here") }
     Scaffold(topBar = {
         Row(
@@ -51,7 +45,7 @@ fun MeScreen(mainActivityCompose: MainActivityCompose, mainViewModel: ViewModelm
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row( horizontalArrangement = Arrangement.Start) {
-                Text(text = "Me", fontWeight = FontWeight.Bold, fontSize = 30.sp)
+                Text(text = mainViewModel.user.value.userName, fontWeight = FontWeight.Bold, fontSize = 30.sp)
             }
             Row(horizontalArrangement = Arrangement.End) {
                 TopAppBarDropdownMenu(bodyContent = bodyContent,mainActivityCompose)
@@ -65,18 +59,13 @@ Column(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(15.dp)) {
             ProfileHeaderMe(user = mainViewModel.user, activity = mainActivityCompose)
             Spacer(modifier = Modifier.height(10.dp))
-            MyListing {
-                val intent = Intent(mainActivityCompose, MyListingsActivity::class.java)
-                mainActivityCompose.startActivity(intent)
-            }
-            Spacer(modifier = Modifier.height(10.dp))
             MyBookings {
-                val intent = Intent(mainActivityCompose, MyListingsActivity::class.java)
+                val intent = Intent(mainActivityCompose, MyBookingsActivity::class.java)
                 mainActivityCompose.startActivity(intent)
             }
             Spacer(modifier = Modifier.height(10.dp))
             MyOrders {
-                val intent = Intent(mainActivityCompose, MyListingsActivity::class.java)
+                val intent = Intent(mainActivityCompose, MyBookingsActivity::class.java)
                 mainActivityCompose.startActivity(intent)
             }
         }
@@ -127,7 +116,6 @@ fun ProfileHeaderMe(user: MutableState<Users>, activity: MainActivityCompose) {
                             })
                     }
 
-
                     Column(
                         modifier = Modifier.padding(start = 10.dp),
                         verticalArrangement = Arrangement.SpaceEvenly
@@ -154,34 +142,6 @@ fun ProfileHeaderMe(user: MutableState<Users>, activity: MainActivityCompose) {
         }
 
 }
-
-//
-//@OptIn(ExperimentalMaterialApi::class)
-//@Composable
-//fun MyProfile(onClick: () -> Unit) {
-//
-//        Card(modifier = Modifier.fillMaxWidth(),border = BorderStroke(2.dp, Color.LightGray), onClick = {
-//            onClick.invoke()
-//        }) {
-//            Row(
-//                Modifier
-//                    .padding(10.dp)
-//                    .height(50.dp)
-//                    .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-//                Row(horizontalArrangement = Arrangement.End) {
-//                    Icon(imageVector = Icons.Default.Person, contentDescription = "" )
-//                }
-//                Text(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    text = "My Profile",
-//                    fontWeight = FontWeight.Bold,
-//                    fontSize = 20.sp,
-//                )
-//
-//            }
-//        }
-//    }
-//
 
 @Composable
 fun TopAppBarDropdownMenu(
@@ -220,9 +180,10 @@ fun TopAppBarDropdownMenu(
         DropdownMenuItem(onClick = {
             expanded.value = false
             FirebaseAuth.getInstance().signOut()
-            val intent = Intent(mainActivityCompose, LoginActivity::class.java)
-            mainActivityCompose.startActivity(intent)
-            mainActivityCompose.finish()
+                    Prefs.clear()
+                    val intent = Intent(mainActivityCompose, LoginActivity::class.java)
+                    mainActivityCompose.startActivity(intent)
+                    mainActivityCompose.finish()
         }) {
             Text("Logout")
             Icon(imageVector = Icons.Default.Logout, contentDescription = null)
@@ -233,31 +194,7 @@ fun TopAppBarDropdownMenu(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun MyListing(onClick: () -> Unit) {
 
-    Card(modifier = Modifier.fillMaxWidth(),border = BorderStroke(2.dp, Color.LightGray), onClick = {
-        onClick.invoke()
-    }) {
-        Row(
-            Modifier
-                .padding(10.dp)
-                .height(50.dp)
-                .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Row(horizontalArrangement = Arrangement.End) {
-                Icon(imageVector = Icons.Default.ListAlt, contentDescription = "" )
-            }
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = "My Listings",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-            )
-
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable

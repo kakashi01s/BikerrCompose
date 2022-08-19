@@ -27,17 +27,16 @@ import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
 import com.firefly.bikerr_compose.screens.login.*
 import com.firefly.bikerr_compose.viewmodel.AddDeviceViewModel
 
-class AddDevice : ComponentActivity() {
+class MyDevice : ComponentActivity() {
     private val addDeviceViewModel by viewModels<AddDeviceViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Bikerr_composeTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
+                Scaffold(topBar = {
+                    Text(text = "My Device")
+                }) {
                     RegisterDevice(this,addDeviceViewModel)
                 }
             }
@@ -47,7 +46,7 @@ class AddDevice : ComponentActivity() {
 
 
 @Composable
-fun RegisterDevice(addDevice: AddDevice, addDeviceViewModel: AddDeviceViewModel) {
+fun RegisterDevice(myDevice: MyDevice, addDeviceViewModel: AddDeviceViewModel) {
     val focusManager = LocalFocusManager.current
     val deviceRegistration = remember { TextFieldState() }
     val deviceName = remember { TextFieldState() }
@@ -66,7 +65,7 @@ fun RegisterDevice(addDevice: AddDevice, addDeviceViewModel: AddDeviceViewModel)
             }
             else
             {
-                addDeviceViewModel.addDevices(addDevice, id = deviceRegistration.text.trim(), deviceName = deviceName.text.trim())
+                addDeviceViewModel.addDevices(myDevice, id = deviceRegistration.text.trim(), deviceName = deviceName.text.trim())
             }
         })
     }

@@ -5,7 +5,7 @@ import android.util.Log
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.firefly.bikerr_compose.activities.AddDevice
+import com.firefly.bikerr_compose.activities.MyDevice
 import com.firefly.bikerr_compose.activities.TraccarActivity
 import com.firefly.bikerr_compose.apiinterface.TraccarApiInterface
 import com.firefly.bikerr_compose.model.traccar.device.TraccarDevice
@@ -25,12 +25,10 @@ class AddDeviceViewModel: ViewModel() {
     private lateinit var retrofit: Retrofit
     private lateinit var retroInterface: TraccarApiInterface
 
-    fun addDevices(addDevice: AddDevice,
-                      deviceName: String,
-                      id: String) {
+    fun addDevices(myDevice: MyDevice,
+                   deviceName: String,
+                   id: String) {
         viewModelScope.launch {
-
-
             val uEmail = Prefs.getString("userEmail")
             val gson = GsonBuilder().setLenient()
             retrofit = Retrofit.Builder()
@@ -50,9 +48,9 @@ class AddDeviceViewModel: ViewModel() {
                         if (response.isSuccessful) {
                             for (i in response.body()!!) {
                                 Log.d("addDevices", response.message().toString())
-                                val intent = Intent(addDevice, TraccarActivity::class.java)
-                                addDevice.startActivity(intent)
-                                addDevice.finish()
+                                val intent = Intent(myDevice, TraccarActivity::class.java)
+                                myDevice.startActivity(intent)
+                                myDevice.finish()
                             }
 
                         }

@@ -6,9 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Chat
+import androidx.compose.material.icons.outlined.Create
+import androidx.compose.material.icons.outlined.GroupAdd
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,6 +33,7 @@ import io.getstream.chat.android.compose.ui.theme.ChatTheme
 import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
 
 class ChannelActivity : AppCompatActivity() {
+    @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -35,44 +41,51 @@ class ChannelActivity : AppCompatActivity() {
         setContent {
             Bikerr_composeTheme {
 
-                val channelId = intent.getStringExtra("channelId")
-                val isFromNotification = intent.getBooleanExtra("isFromNotification", false)
-                if (isFromNotification) {
-                    val intent = Intent(this, MessagesActivity::class.java)
-                    intent.putExtra("channelId",channelId)
-                    startActivity(intent)
 
-                }
 
                 Scaffold(
                     topBar = {
+
                         Row(
                             modifier = Modifier
                                 .padding(10.dp)
-                                .height(40.dp)
                                 .fillMaxWidth(),
+                        ) {
 
-                            ) {
-                            Text(text = "My Chats", fontWeight = FontWeight.Bold, fontSize = 30.sp)
-                            Row(Modifier.padding(start = 30.dp).fillMaxWidth(),
+                            Text( text = "Chat", fontWeight = FontWeight.Bold, fontSize = 30.sp)
+                            Row(Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
                             ) {
-
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                                    Button(onClick = {
-                                        val intent = Intent(this@ChannelActivity,CommunityCreateActivity::class.java)
+                                Card(shape = RoundedCornerShape(20.dp), elevation = 5.dp, backgroundColor = Color.LightGray) {
+                                    IconButton(onClick = {
+                                        val intent = Intent(
+                                            this@ChannelActivity,
+                                            CommunityCreateActivity::class.java
+                                        )
                                         startActivity(intent)
+                                        this@ChannelActivity.finish()
                                     }) {
-                                        Text(text = "Create")
-                                    }
-                                    Button( onClick = {
-                                        val intent =
-                                            Intent(this@ChannelActivity, CommunityActivity::class.java)
-                                            startActivity(intent)
-                                    }) {
-                                        Text(text = "Join")
+
+                                            Icon(imageVector = Icons.Outlined.Create, contentDescription = "create")
+
                                     }
                                 }
+
+                                Spacer(modifier = Modifier.width(30.dp))
+
+                                Card(shape = RoundedCornerShape(20.dp), elevation = 5.dp, backgroundColor = Color.LightGray) {
+                                    IconButton(onClick = {
+                                        val intent =
+                                            Intent(this@ChannelActivity, CommunityActivity::class.java)
+                                        startActivity(intent)
+                                        this@ChannelActivity.finish()
+                                    }) {
+
+                                        Icon(imageVector = Icons.Outlined.GroupAdd, contentDescription = "create")
+
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -84,7 +97,6 @@ class ChannelActivity : AppCompatActivity() {
                             isShowingSearch = false,
                             onItemClick = ::openMessages,
                             onBackPressed = ::finish,
-
                             )
                     }
 
@@ -100,8 +112,12 @@ class ChannelActivity : AppCompatActivity() {
 
 
     private fun openMessages(channel: Channel) {
+
         startActivity(MessagesActivity.createIntent(this, channel.cid))
+        ChannelActivity().finish()
+
     }
+
 
 
 }

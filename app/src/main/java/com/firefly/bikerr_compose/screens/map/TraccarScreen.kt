@@ -1,48 +1,45 @@
 package com.firefly.bikerr_compose.screens.map
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.firefly.bikerr_compose.R
-import com.firefly.bikerr_compose.activities.AddDevice
+import com.firefly.bikerr_compose.activities.MyDevice
 import com.firefly.bikerr_compose.activities.TraccarActivity
 import com.firefly.bikerr_compose.activities.TraccarHistoryActivity
 import com.firefly.bikerr_compose.viewmodel.ViewModelTraccar
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.scalars.ScalarsConverterFactory
 
 @Composable
 fun TraccarScreen(mainActivityCompose: TraccarActivity, traccarViewModel: ViewModelTraccar) {
@@ -76,96 +73,68 @@ fun TraccarScreen(mainActivityCompose: TraccarActivity, traccarViewModel: ViewMo
 @Composable
 fun GoogleMaps(mainActivityCompose: TraccarActivity, traccarViewModel: ViewModelTraccar) {
     val mapView = rememberMapViewWithLifecycle()
-    val pickup: MutableLiveData<LatLng> by lazy { MutableLiveData<LatLng>() }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .background(Color.White)
-    , floatingActionButton = {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
 
-                FloatingActionButton(onClick = { /*TODO*/ }, backgroundColor = Color.White) {
-                    IconButton(onClick = {
-                        val intent  = Intent(mainActivityCompose,TraccarHistoryActivity::class.java)
-                        mainActivityCompose.startActivity(intent)
-                        mainActivityCompose.finish()
-                    }) {
-                        Icon(imageVector = Icons.Default.History, contentDescription = "", tint = Color.DarkGray)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                FloatingActionButton(onClick = { /*TODO*/ }, backgroundColor = Color.White) {
-                    IconButton( onClick = {
-                        val intent = Intent(mainActivityCompose,AddDevice::class.java)
-                        mainActivityCompose.startActivity(intent)
-                    }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription ="",tint = Color.DarkGray)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                FloatingActionButton(onClick = { /*TODO*/ }, backgroundColor = Color.White) {
-                    IconButton(onClick = {
-
-                        pickup.observe(mainActivityCompose) {
-                            val gmmIntentUri =
-                                Uri.parse("google.navigation:q=${it.latitude},${it.longitude}")
-                            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-                            mapIntent.setPackage("com.google.android.apps.maps")
-                            mainActivityCompose.startActivity(mapIntent)
-                            mainActivityCompose.finish()
-
-                        }
-
-                    }) {
-                        Icon(imageVector = Icons.Default.Navigation, contentDescription = "",tint = Color.DarkGray)
-                    }
+    Scaffold(topBar =
+    {
+    Row(Modifier.background(color = Color.White).padding(10.dp)) {
+        Row() {
+            Text(text = "Tracker")
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Card(shape = RoundedCornerShape(20.dp), elevation = 5.dp, backgroundColor = Color.LightGray) {
+                IconButton(onClick = {
+                    val intent  = Intent(mainActivityCompose,TraccarHistoryActivity::class.java)
+                    mainActivityCompose.startActivity(intent)
+                    mainActivityCompose.finish()
+                }) {
+                    Icon(imageVector = Icons.Default.History, contentDescription = "", tint = Color.DarkGray)
                 }
             }
 
-        }, floatingActionButtonPosition = FabPosition.End,
-    isFloatingActionButtonDocked = false) {
-        AndroidView({ mapView}) {mapView->
-            CoroutineScope(Dispatchers.Main).launch {
-                var lat: Float
-                var lon: Float
-                traccarViewModel.latitude.observe(mainActivityCompose) { data ->
-                    Log.d("yyyy", data.toString())
-                    lat = data
-                    traccarViewModel.longitude.observe(mainActivityCompose) { data ->
-                        Log.d("yyyy", data.toString())
-                        lon = data
+            Spacer(modifier = Modifier.width(30.dp))
 
-                        pickup.postValue(LatLng(lat.toDouble(), lon.toDouble()))
-                        pickup.observe(mainActivityCompose) {
-                            val map = mapView.getMapAsync { map ->
-                                map.isBuildingsEnabled = true
-                                map.uiSettings.isMyLocationButtonEnabled = true
-                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 18f))
-                                val markerOptions = MarkerOptions()
-                                    .title("MyBike")
-                                    .position(it)
-                                    .icon(BitmapDescriptorFactory.fromResource(android.R.drawable.ic_menu_mylocation))
-                                map.addMarker(markerOptions)
-                                Log.d("yyyy", it.toString())
-
-                            }
-                        }
-
-                    }
-
+            Card(shape = RoundedCornerShape(20.dp), elevation = 5.dp, backgroundColor = Color.LightGray) {
+                IconButton( onClick = {
+                    val intent = Intent(mainActivityCompose,MyDevice::class.java)
+                    mainActivityCompose.startActivity(intent)
+                }) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription ="",tint = Color.DarkGray)
                 }
-
 
             }
         }
     }
+    },
+        modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth()
+            .background(Color.White)
+    ,
+    isFloatingActionButtonDocked = true) {
+        AndroidView({ mapView}) {mapView->
+            CoroutineScope(Dispatchers.Main).launch {
+                        traccarViewModel.pickup.observe(mainActivityCompose) {
+                            val map = mapView.getMapAsync { map ->
+                                map.isBuildingsEnabled = true
+                                map.uiSettings.isMyLocationButtonEnabled = true
+
+                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 18f))
+                                val markerOptions = MarkerOptions()
+                                    .position(it)
+                                    .icon(BitmapDescriptorFactory.fromResource(android.R.drawable.ic_menu_mylocation))
+                                    .title("MyBike")
+                                map.addMarker(markerOptions)
+                                Log.d("yyyy", it.toString())
+                            }
+                  }
+            }
+        }
+    }
 }
+
+
+
 
 @Composable
 fun rememberMapViewWithLifecycle(): MapView {

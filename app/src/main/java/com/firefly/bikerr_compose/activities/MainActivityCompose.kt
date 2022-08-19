@@ -1,18 +1,13 @@
 package com.firefly.bikerr_compose.activities
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.AbsoluteRoundedCornerShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
@@ -21,9 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,14 +28,14 @@ import androidx.navigation.compose.rememberNavController
 import com.firefly.bikerr_compose.activities.ui.theme.Bikerr_composeTheme
 import com.firefly.bikerr_compose.navigation.BottomBarScreen
 import com.firefly.bikerr_compose.navigation.BottomNavGraph
-import com.firefly.bikerr_compose.viewmodel.ViewModelmain
+import com.firefly.bikerr_compose.viewmodel.MainViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 
 class MainActivityCompose : ComponentActivity() {
 
 
-    private val mainViewModel by viewModels<ViewModelmain>()
+    private val mainViewModel by viewModels<MainViewModel>()
     var email : String= ""
     val uid = FirebaseAuth.getInstance().uid
 
@@ -63,8 +56,9 @@ class MainActivityCompose : ComponentActivity() {
                     mainViewModel.CreateStreamUser()
                     mainViewModel.getRentalCategory()
                 mainViewModel.getRentals()
-                mainViewModel.streamunreadMessages()
+                mainViewModel.streamUnreadMessages()
                 mainViewModel.getUserDetails(uid = uid!!)
+                mainViewModel.getBlog()
 
                     // A surface container using the 'background' color from the theme
                     BottomAppbarWithFab(navController = navController, this, mainViewModel)
@@ -89,7 +83,7 @@ class MainActivityCompose : ComponentActivity() {
 fun BottomAppbarWithFab(
     navController: NavHostController,
     mainActivityCompose: MainActivityCompose,
-    mainViewModel: ViewModelmain
+    mainViewModel: MainViewModel
 ) {
 
 

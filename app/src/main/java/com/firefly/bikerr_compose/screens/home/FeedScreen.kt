@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,22 +24,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.firefly.bikerr_compose.activities.*
+import com.firefly.bikerr_compose.model.Blog
 import com.firefly.bikerr_compose.model.Feed
-import com.firefly.bikerr_compose.viewmodel.ViewModelmain
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.firefly.bikerr_compose.viewmodel.MainViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jet.firestore.JetFirestore
 import com.jet.firestore.getListOfObjects
+import com.skydoves.landscapist.ShimmerParams
 import com.skydoves.landscapist.glide.GlideImage
-import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.client.ChatEventListener
-import io.getstream.chat.android.client.events.ChatEvent
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun FeedScreen(mainActivityCompose: MainActivityCompose, mainViewModel: ViewModelmain) {
+fun FeedScreen(mainActivityCompose: MainActivityCompose, mainViewModel: MainViewModel) {
     var feedlist by remember { mutableStateOf(listOf<Feed>()) }
 
 Scaffold(topBar = {
@@ -54,16 +50,20 @@ Scaffold(topBar = {
         Row(Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
+            Card(shape = RoundedCornerShape(20.dp), elevation = 5.dp, backgroundColor = Color.LightGray) {
             IconButton(onClick = {
-                val intent = Intent(mainActivityCompose,ChannelActivity::class.java)
-                mainActivityCompose.startActivity(intent)
-            }) {
-                BadgedBox(badge = { if (mainViewModel.unreadMessages.value > 0) {
-                    Badge {
-                        Text("${mainViewModel.unreadMessages.value}")
+                    val intent = Intent(mainActivityCompose, ChannelActivity::class.java)
+                    mainActivityCompose.startActivity(intent)
+                }) {
+                    BadgedBox(badge = {
+                        if (mainViewModel.unreadMessages.value > 0) {
+                            Badge {
+                                Text("${mainViewModel.unreadMessages.value}")
+                            }
+                        }
+                    }) {
+                        Icon(imageVector = Icons.Outlined.Chat, contentDescription = "add post")
                     }
-                } }) {
-                    Icon(imageVector = Icons.Outlined.Chat, contentDescription = "add post")
                 }
             }
 
@@ -85,7 +85,7 @@ Scaffold(topBar = {
         }) {
         Column(modifier = Modifier
             .fillMaxWidth()
-            .height(650.dp)) {
+            .fillMaxHeight()) {
             feedlist.reversed().let {
                 LazyColumn(modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -98,124 +98,91 @@ Scaffold(topBar = {
         }
 
     }
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()) {
+            mainViewModel.blogList.value.let {
+                LazyColumn(modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceEvenly) {
+                    items(it){
+                        FeedItem(blog = it)
+                    }
+                }
+            }
+        }
+
+    Divider(color = Color.Transparent, thickness = 50.dp)
+
+
+
 }
 }
 
 @Composable
-fun FeedItem(feed: Feed, uImage: String, uname: String, mainActivityCompose: MainActivityCompose) {
-    val coroutineScope = rememberCoroutineScope()
-    val db = FirebaseFirestore.getInstance()
-    val feedLikes = remember {
-        mutableStateOf(0)
-    }
+fun FeedItem(blog: Blog) {
 
-    feedLikes.value = feed.likes
-
-    Box(
+    Card(
         Modifier
-            .padding(5.dp)
-            .height(500.dp)
-            .fillMaxWidth()
+            .padding(15.dp)
+            .fillMaxSize()
             .background(
                 color = Color.Transparent,
                 shape = RoundedCornerShape(25.dp)
-            ))
+            )
+    ,
+        elevation = 5.dp
+    )
     {
 
         Column(
             Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.SpaceAround)
+            verticalArrangement = Arrangement.Center,
+        )
         {
+            Row(Modifier.padding(5.dp)) {
+                Text(text = blog.blogHeading!!, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
 
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-// Profile Image
-Image(painter = rememberImagePainter(data = uImage), contentDescription = "",
-    modifier = Modifier
-        .size(30.dp)
-        .clip(RoundedCornerShape(20.dp)),
-    alignment = Alignment.Center)
-                Spacer(modifier = Modifier.size(10.dp))
-                // Profile Name
-                Text(modifier = Modifier.fillMaxWidth(),
-                    text = uname,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start
-                )
             }
 //Feed Image
             GlideImage( // CoilImage, FrescoImage
-                imageModel = feed.image,
-                modifier = Modifier.size(380.dp),
+                imageModel = blog.blogImage,
+                modifier = Modifier
+                    .size(360.dp)
+                    .padding(10.dp),
                 alignment = Alignment.Center,
-                // shows an indicator while loading an image.
-                loading = {
-                    Box(modifier = Modifier.matchParentSize()) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
-                },
+                shimmerParams = ShimmerParams(
+                    baseColor = MaterialTheme.colors.background,
+                    highlightColor = Color.LightGray,
+                    durationMillis = 350,
+                    dropOff = 0.65f,
+                    tilt = 20f
+                )
+                ,
+
                 // shows an error text if fail to load an image.
                 failure = {
                     Text(text = "image request failed.")
                 })
 // Caption
+
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(5.dp),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Text(
-                    text = uname,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(text = feed.caption)
-            }
-// Like and Comment Button
-            Row(
-                Modifier
-                    .fillMaxWidth(),
+                    .padding(10.dp)
+                    .background(color = Color.DarkGray),
                 horizontalArrangement = Arrangement.Start)
             {
-                //Like Button
-                Box(Modifier.clickable {
-                }) {
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            feedLikes.value = feedLikes.value + 1
-                            val post = Feed(feed.caption,   0, feed.image,  feedLikes.value,  uid = feed.uid,feed.feedId)
-                            db.collection("Feed").document(feed.feedId).set(post).addOnCompleteListener {
-                                Log.d("like", " you liked Post : ${feed.feedId}")
-                            }
-                        }
-
-                    }) {
-                        Icon(
-                            imageVector = Icons.Outlined.ThumbUp,
-                            contentDescription = "")
+                Box(modifier = Modifier.padding(10.dp))
+                {
+                    Column()
+                    {
+                        Text(text = "More:")
+                        Text(text = blog.blogData!!)
                     }
+
                 }
-
-                Text(text = feedLikes.value.toString())
-
-                Spacer(modifier = Modifier.size(5.dp))
-
-                    IconButton(onClick = {
-
-                    }) {
-                        Icon(
-                            imageVector = Icons.Outlined.AddComment,
-                            contentDescription = "")
-                    }
-                }
+            }
         }
     }
 }

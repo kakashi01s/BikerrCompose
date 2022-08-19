@@ -30,6 +30,7 @@ class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
             Bikerr_composeTheme {
                 val viewModel : ViewModellogin = ViewModelProvider(this)[ViewModellogin::class.java]
                 // A surface container using the 'background' color from the theme
@@ -38,7 +39,8 @@ class LoginActivity : ComponentActivity() {
                 }) {
 
                     navController = rememberNavController()
-                    SetUpLoginGraph(navcontroller = navController, this, viewModel)
+                    SetUpLoginGraph(navController = navController, this, viewModel)
+
                 }
             }
         }

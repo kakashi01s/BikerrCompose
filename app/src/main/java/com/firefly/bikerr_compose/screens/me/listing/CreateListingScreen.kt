@@ -87,7 +87,6 @@ fun CreateListingScreen(activity: CreateListingActivity, viewModel: ViewModelCre
                     horizontalArrangement = Arrangement.End
                 ) {
                     Button(onClick = {
-
                         //send data to firebase
                         if (
                             vehicleImageUri1.uri == "https://pngimage.net/wp-content/uploads/2018/05/add-logo-png-5.png".toUri() &&

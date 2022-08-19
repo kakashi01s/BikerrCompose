@@ -22,6 +22,17 @@
         android:theme="@style/Theme.Bikerr"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".activities.PlanRidesActivity"
+            android:exported="false"
+            android:label="@string/title_activity_plan_rides"
+            android:theme="@style/Theme.Bikerr" />
+
+        <activity
+            android:name=".activities.MyBookingsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_my_bookings"
+            android:theme="@style/Theme.Bikerr" />
+        <activity
             android:name=".activities.MyProfileActivity"
             android:exported="false"
             android:label="@string/title_activity_my_profile"
@@ -40,11 +51,6 @@
             android:name=".activities.CheckoutBookingActivity"
             android:exported="false"
             android:label="@string/title_activity_checkout_booking"
-            android:theme="@style/Theme.Bikerr" />
-        <activity
-            android:name=".activities.RentalBookingActivity"
-            android:exported="false"
-            android:label="@string/title_activity_rental_booking"
             android:theme="@style/Theme.Bikerr" />
         <activity
             android:name=".activities.RentalItemActivity"
@@ -67,7 +73,7 @@
             android:label="@string/title_activity_traccar"
             android:theme="@style/Theme.Bikerr" />
         <activity
-            android:name=".activities.AddDevice"
+            android:name=".activities.MyDevice"
             android:exported="false"
             android:label="@string/title_activity_add_device"
             android:theme="@style/Theme.Bikerr" />
@@ -83,24 +89,20 @@
             android:theme="@style/Theme.Bikerr" />
         <activity
             android:name=".activities.MessagesActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/title_activity_messaging"
-            android:theme="@style/Theme.Bikerr"
-            android:windowSoftInputMode="adjustResize"
-            android:parentActivityName=".activities.MainActivityCompose"
             android:launchMode="singleTask"
+            android:parentActivityName=".activities.MainActivityCompose"
             android:taskAffinity=""
-            android:excludeFromRecents="true">
-
-        </activity>
+            android:theme="@style/Theme.Bikerr"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".activities.ChannelActivity"
             android:exported="false"
             android:label="@string/title_activity_channels"
             android:theme="@style/Theme.Bikerr"
-            android:windowSoftInputMode="adjustResize" >
-
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".activities.CheckoutOrderActivity"
             android:exported="false"
@@ -136,12 +138,13 @@
             android:theme="@style/Theme.Bikerr">
             <intent-filter>
                 <action android:name="OPEN_ACTIVITY_1" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
         </activity>
-        <activity android:name="com.canhub.cropper.CropImageActivity"
-            android:theme="@style/Base.Theme.AppCompat"/>
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
         <activity
             android:name=".activities.LoginActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

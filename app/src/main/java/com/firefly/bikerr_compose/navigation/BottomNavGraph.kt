@@ -1,5 +1,7 @@
 package com.firefly.bikerr_compose.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -9,14 +11,15 @@ import com.firefly.bikerr_compose.screens.home.FeedScreen
 import com.firefly.bikerr_compose.screens.me.MeScreen
 import com.firefly.bikerr_compose.screens.rent.RentScreen
 import com.firefly.bikerr_compose.screens.shop.ShopScreen
-import com.firefly.bikerr_compose.viewmodel.ViewModelmain
+import com.firefly.bikerr_compose.viewmodel.MainViewModel
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BottomNavGraph(
     navHostController: NavHostController,
     mainActivityCompose: MainActivityCompose,
-    mainViewModel: ViewModelmain
+    mainViewModel: MainViewModel
 ) {
 NavHost(
     navController = navHostController,
@@ -38,6 +41,5 @@ NavHost(
         {
            MeScreen(mainActivityCompose = mainActivityCompose,mainViewModel)
         }
-
 }
 }

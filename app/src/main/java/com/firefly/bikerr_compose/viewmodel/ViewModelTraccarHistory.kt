@@ -63,7 +63,7 @@ class ViewModelTraccarHistory: ViewModel() {
                                 basic,
                                 deviceid,
                                 "2022-05-13T06:00:00Z",
-                                "2022-05-13T23:59:00Z"
+                                "2022-06-03T23:59:00Z"
                             )
                                 .enqueue(object : Callback<List<TraccarHistoryActivity>> {
                                     override fun onResponse(

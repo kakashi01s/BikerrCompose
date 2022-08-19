@@ -9,6 +9,7 @@ import retrofit2.http.*
 interface TraccarApiInterface {
     @POST("/createUser")
     fun createTraccarUser(@Body map : HashMap<String, String>): Call<String>
+
     @POST("/api/devices")
     fun addDevice(@Header("Authorization") h1:String, @Query("name") name : String, @Query("uniqueId") uniqueId : String): Call<List<TraccarDevice>>
 

@@ -5,8 +5,11 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.firefly.bikerr_compose.R
 import com.firefly.bikerr_compose.activities.CreateListingActivity
 import com.firefly.bikerr_compose.activities.MyListingsActivity
 import com.firefly.bikerr_compose.model.Booking
@@ -202,6 +205,7 @@ class ViewModelCreateListing: ViewModel() {
                     .addOnSuccessListener {
                         val builder = AlertDialog.Builder(activity)
                         builder.setTitle("Listing Created")
+                        builder.setIcon(R.drawable.bikerr_logo)
                         builder.setMessage("Please Wait While we verify Your Listing, Do you Want to Create Another Listing?")
                         builder.setPositiveButton(android.R.string.yes) { dialog, which ->
                             Toast.makeText(activity, android.R.string.yes, Toast.LENGTH_SHORT).show()

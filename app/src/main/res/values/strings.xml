@@ -78,4 +78,7 @@
     <string name="title_activity_my_listings">MyListingsActivity</string>
     <string name="title_activity_create_listing">CreateListingActivity</string>
     <string name="title_activity_my_profile">MyProfileActivity</string>
+    <string name="title_activity_my_bookings">MyBookingsActivity</string>
+    <string name="title_activity_plan_ride">PlanRideActivity</string>
+    <string name="title_activity_plan_rides">PlanRidesActivity</string>
 </resources>

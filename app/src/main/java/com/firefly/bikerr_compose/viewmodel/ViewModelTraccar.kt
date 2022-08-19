@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.firefly.bikerr_compose.apiinterface.TraccarApiInterface
 import com.firefly.bikerr_compose.model.traccar.device.TraccarDevice
 import com.firefly.bikerr_compose.model.traccar.position.PositionsItem
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -35,6 +36,7 @@ class ViewModelTraccar: ViewModel() {
     var deviceid : String by mutableStateOf(value= "")
     val longitude: MutableLiveData<Float> by lazy { MutableLiveData<Float>() }
     val latitude: MutableLiveData<Float> by lazy { MutableLiveData<Float>() }
+    val pickup: MutableLiveData<LatLng> by lazy { MutableLiveData<LatLng>() }
 
 
 
@@ -124,6 +126,7 @@ class ViewModelTraccar: ViewModel() {
                                        Log.d("position", i.latitude.toString())
                                        latitude.postValue(i.latitude)
                                        longitude.postValue(i.longitude)
+                                       pickup.postValue(LatLng(i.latitude.toDouble(), i.longitude.toDouble()))
                                        Log.d("ttt",deviceid)
                                    }
                                }

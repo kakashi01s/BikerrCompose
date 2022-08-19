@@ -99,11 +99,18 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0"
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
 
-    def stream_version = "5.0.2"
-    implementation "io.getstream:stream-chat-android-compose:$stream_version"
+    def stream_version = "5.2.0"
+    implementation("io.getstream:stream-chat-android-compose:$stream_version")
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation "io.getstream:stream-chat-android-pushprovider-firebase:$stream_version"
+
+    //overlapping Panels
+    implementation 'com.github.X1nto:OverlappingPanelsCompose:1.2.0'
+
 
     //oneSignal notifications
     implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
@@ -116,6 +123,8 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:28.3.1')
     //cloud messaging
     implementation 'com.google.firebase:firebase-messaging'
+
+
 
     //crop image
     implementation("com.github.CanHub:Android-Image-Cropper:4.2.1")

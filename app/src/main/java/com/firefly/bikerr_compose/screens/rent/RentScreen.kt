@@ -1,10 +1,12 @@
 package com.firefly.bikerr_compose.screens.rent
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import android.widget.DatePicker
-import androidx.compose.animation.VectorConverter
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ExperimentalGraphicsApi
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -35,22 +36,29 @@ import com.firefly.bikerr_compose.activities.MainActivityCompose
 import com.firefly.bikerr_compose.activities.RentalItemActivity
 import com.firefly.bikerr_compose.model.rental.Vehicle
 import com.firefly.bikerr_compose.screens.login.TextFieldState
-import com.firefly.bikerr_compose.viewmodel.ViewModelmain
+import com.firefly.bikerr_compose.viewmodel.MainViewModel
 import com.skydoves.landscapist.glide.GlideImage
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
+@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("SimpleDateFormat")
 @Composable
 fun RentScreen(
     mainActivityCompose: MainActivityCompose,
-    mainViewModel: ViewModelmain,
+    mainViewModel: MainViewModel,
 )
 {
 
     var list: List<Vehicle>
+
     val selectedCity = remember { TextFieldState() }
-    val mDatefrom = remember { mutableStateOf("") }
-    val mDateto= remember { mutableStateOf("") }
+    val mDateStart = remember { mutableStateOf("") }
+    val mDateEnd = remember { mutableStateOf("") }
+    val sameDateFound = remember { mutableStateOf(false) }
 
     Scaffold(topBar = {
         Column(
@@ -71,15 +79,18 @@ fun RentScreen(
 
                 Column {
                     Text(text = "START DATE", color = Color.Gray, fontWeight = FontWeight.Bold, fontSize = 10.sp)
-                    DatePicker(mDate = mDateto, activity = mainActivityCompose)
+                    DatePicker(
+                        mDate = mDateEnd,
+                        activity = mainActivityCompose,
+                        sameDateFound
+                    )
                 }
                 Column() {
                     Text(text = "END DATE", color = Color.Gray, fontWeight = FontWeight.Bold, fontSize = 10.sp)
-                    DatePicker(mDate = mDatefrom, activity = mainActivityCompose)
+                    DatePicker(mDate = mDateStart, activity = mainActivityCompose, sameDateFound = sameDateFound)
                 }
             }
         }
-
     }) {
         Divider(color = Color.LightGray, thickness = 5.dp)
 
@@ -90,18 +101,82 @@ fun RentScreen(
                     .fillMaxSize()
                     .padding(start = 5.dp, end = 5.dp, top = 5.dp, bottom = 50.dp), verticalArrangement = Arrangement.spacedBy(8.dp)){
                     items(it){
-                        if (it.location == selectedCity.text.uppercase() && it.verified)
+                        if (it.location == selectedCity.text.uppercase() && it.verified && mDateStart.value.isNotEmpty() && mDateEnd.value.isNotEmpty())
                         {
+
+                            mainViewModel.checkBooking(regNumber = it.regNumber)
                             Log.d("lid",it.toString())
                             RentalListItem(vehicle = it) {
-                                val intent = Intent(mainActivityCompose, RentalItemActivity::class.java)
-                                intent.putExtra("header",it.name)
-                                intent.putExtra("reg",it.regNumber)
-                                mainActivityCompose.startActivity(intent)
+                                val bookingList = mainViewModel.bookingList.value
+                                if (bookingList.isNullOrEmpty())
+                                {
+                                    val intent = Intent(mainActivityCompose, RentalItemActivity::class.java)
+                                    intent.putExtra("startDate",mDateStart.value)
+                                    intent.putExtra("endDate",mDateEnd.value)
+                                    intent.putExtra("header",it.name)
+                                    intent.putExtra("reg",it.regNumber)
+                                    mainActivityCompose.startActivity(intent)
+                                }
+                                else {
+                                    val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                                    val startCurrent = mDateStart.value.format(formatter)
+                                    val endCurrent = mDateEnd.value.format(formatter)
+                                    mainViewModel.getCurrentDates(startCurrent, endCurrent)
+                                    bookingList.forEach { booking ->
+                                        val startBooking = booking.startDate?.format(formatter)
+                                        val endBooking = booking.endDate?.format(formatter)
+                                        Log.d("bookingDatesB", mainViewModel.bookedDates.value.toString())
+                                        mainViewModel.bookedDates.value = getBookingDates(booking.startDate,booking.endDate)
+
+                                        Log.d("bookingDatesC",mainViewModel.currentDates.value.toString())
+                                        for(i in mainViewModel.bookedDates.value)
+                                        {
+                                            for (j in mainViewModel.currentDates.value)
+                                            {
+                                                if (i == j)
+                                                {
+                                                    sameDateFound.value = true
+
+                                                    Log.d("bookingDatesCurrent","Same dates Found$i$j")
+                                                }
+                                                else
+                                                {
+                                                    Log.d("bookingDatesCurrent","different Dates")
+                                                }
+
+                                            }
+                                        }
+
+                                    }
+
+
+                                    if (sameDateFound.value)
+                                    {
+                                        val builder = android.app.AlertDialog.Builder(mainActivityCompose)
+                                        builder.setTitle("Booked!")
+                                        builder.setMessage("The vehicle You are looking for is booked on the selected Dates please choose another Dates and try again or pick another One.")
+                                        builder.setPositiveButton("OK") { dialog, which ->
+                                            dialog.dismiss()
+                                        }
+                                        builder.show()
+                                    }
+                                    else if (!sameDateFound.value)
+                                    {
+                                        val intent = Intent(
+                                            mainActivityCompose,
+                                            RentalItemActivity::class.java
+                                        )
+                                        intent.putExtra("startDate",mDateStart.value)
+                                        intent.putExtra("endDate",mDateEnd.value)
+                                        intent.putExtra("header", it.name)
+                                        intent.putExtra("reg", it.regNumber)
+                                        mainActivityCompose.startActivity(intent)
+                                    }
+
+                                }
+
                             }
                         }
-
-
 
                     }
                 }
@@ -112,6 +187,35 @@ fun RentScreen(
 
 
 
+fun getBookingDates(dateString1: String?, dateString2:String?): List<String> {
+    Log.d("bookingDatesc",dateString1.toString())
+    Log.d("bookingDatesc",dateString2.toString())
+    val dates = ArrayList<String>()
+    val input =  SimpleDateFormat("dd-MM-yyyy", Locale.US)
+    var date1:Date? = null
+    var date2:Date? = null
+    try
+    {
+        date1 = dateString2?.let { input.parse(it) }
+        date2 = dateString1?.let { input.parse(it) }
+    }
+    catch (e:ParseException) {
+        e.printStackTrace()
+    }
+    val cal1 = Calendar.getInstance()
+    cal1.time = date1
+
+    val cal2 = Calendar.getInstance()
+    cal2.time = date2
+
+    while (!cal1.after(cal2))
+    {
+        val output = SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault())
+        dates.add(output.format(cal1.time))
+        cal1.add(Calendar.DATE, 1)
+    }
+    return dates
+}
 
 
 
@@ -180,7 +284,10 @@ fun SelectedCityDropDown(
 
 
 @Composable
-fun DatePicker(mDate: MutableState<String>,activity : MainActivityCompose) {
+fun DatePicker(mDate: MutableState<String>,activity : MainActivityCompose,sameDateFound: MutableState<Boolean> = remember {
+    mutableStateOf(false)
+}) {
+    sameDateFound.value = false
     // Fetching the Local Context
     val mContext = LocalContext.current
 
@@ -205,7 +312,7 @@ fun DatePicker(mDate: MutableState<String>,activity : MainActivityCompose) {
     val mDatePickerDialog = DatePickerDialog(
         mContext,
         { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-            mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
+            mDate.value = "$mDayOfMonth-${mMonth + 1}-$mYear"
         }, mYear, mMonth, mDay
     )
 
@@ -290,25 +397,25 @@ fun ImageSlider(vehicle: Vehicle) {
     )
 
     com.firefly.bikerr_compose.common.Pager(
-        items = images,
-        modifier = Modifier
-            .width(100.dp)
-            .height(100.dp),
-        itemFraction = .75f,
-        overshootFraction = .75f,
-        initialIndex = 0,
-        itemSpacing = 16.dp,
-        contentFactory = { item ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                GlideImage(imageModel = item, modifier = Modifier.fillMaxSize())
+            items = images,
+            modifier = Modifier
+                .width(100.dp)
+                .height(100.dp),
+            itemFraction = .75f,
+            overshootFraction = .75f,
+            initialIndex = 0,
+            itemSpacing = 16.dp,
+            contentFactory = { item ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    GlideImage(imageModel = item, modifier = Modifier.fillMaxSize())
 
+                }
             }
-        }
-    )
+        )
 }
 
 

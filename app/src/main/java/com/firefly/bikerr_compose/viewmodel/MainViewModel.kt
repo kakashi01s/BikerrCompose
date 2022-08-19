@@ -1,21 +1,15 @@
 package com.firefly.bikerr_compose.viewmodel
 
-import android.content.Intent
+import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import com.firefly.bikerr_compose.activities.RentalItemActivity
-import com.firefly.bikerr_compose.model.Categories
-import com.firefly.bikerr_compose.model.Stores
-import com.firefly.bikerr_compose.model.Users
+import com.firefly.bikerr_compose.model.*
 import com.firefly.bikerr_compose.model.rental.RentCategory
 import com.firefly.bikerr_compose.model.rental.Vehicle
 import com.firefly.bikerr_compose.screens.login.TextFieldState
@@ -24,8 +18,15 @@ import com.jet.firestore.getListOfObjects
 import com.pixplicity.easyprefs.library.Prefs
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.models.User
+import java.text.DateFormat
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.collections.ArrayList
 
-class ViewModelmain : ViewModel() {
+class MainViewModel : ViewModel() {
     val mainHandler = Handler(Looper.getMainLooper())
     private val loading = mutableStateOf(false)
      var sparePartsList = mutableStateOf(listOf<Stores>())
@@ -34,6 +35,11 @@ class ViewModelmain : ViewModel() {
      var categorylist = mutableStateOf(listOf<Categories>())
     var vehicleList = mutableStateOf(listOf<Vehicle>())
     var user : MutableState<Users> = mutableStateOf(Users("","","","",""))
+    var bookingList = mutableStateOf(listOf(Booking()))
+    var blogList = mutableStateOf(listOf(Blog()))
+    var bookedDates = mutableStateOf(listOf(""))
+    var currentDates = mutableStateOf(listOf(""))
+
 
 
     private var  client : ChatClient = ChatClient.instance()
@@ -84,6 +90,39 @@ class ViewModelmain : ViewModel() {
 
     }
 
+
+    @Composable
+    fun checkBooking(regNumber : String)  {
+        JetFirestore(path = {
+            collection("Rental").document(regNumber).collection("bookings")
+        },
+            onRealtimeCollectionFetch = { values, _ ->
+                //When all documents are fetched
+                //booksList = values.getListOfObjects()
+
+                //When documents are fetched based on limit
+                bookingList.value =  values.getListOfObjects()
+            }) {
+            Log.d("bookingDates",bookingList.value.toString())
+        }
+    }
+
+    @Composable
+    fun getBlog()  {
+        JetFirestore(path = {
+            collection("Blog")
+        },
+            onRealtimeCollectionFetch = { values, _ ->
+                //When all documents are fetched
+                //booksList = values.getListOfObjects()
+
+                //When documents are fetched based on limit
+                blogList.value =  values.getListOfObjects()
+            }) {
+            Log.d("bookingDates",blogList.value.toString())
+        }
+    }
+
     @Composable
     fun getRentalCategory() {
         JetFirestore(path = {
@@ -98,6 +137,39 @@ class ViewModelmain : ViewModel() {
             }) {
 
         }
+    }
+
+
+
+    fun getCurrentDates(dateString1:String?, dateString2:String?) {
+        Log.d("bookingDatesc",dateString1.toString())
+        Log.d("bookingDatesc",dateString2.toString())
+        val dates = ArrayList<String>()
+        val input =  SimpleDateFormat("dd-MM-yyyy", Locale.US)
+        var date1:Date? = null
+        var date2:Date? = null
+        try
+        {
+            date1 = dateString2?.let { input.parse(it) }
+            date2 = dateString1?.let { input.parse(it) }
+        }
+        catch (e:ParseException) {
+            e.printStackTrace()
+        }
+        val cal1 = Calendar.getInstance()
+            cal1.time = date1
+
+        val cal2 = Calendar.getInstance()
+            cal2.time = date2
+
+        while (!cal1.after(cal2))
+        {
+            val output = SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault())
+            dates.add(output.format(cal1.time))
+            cal1.add(Calendar.DATE, 1)
+        }
+        currentDates.value = dates.toList()
+
     }
 
     @Composable
@@ -116,14 +188,17 @@ class ViewModelmain : ViewModel() {
         }
     }
 
-    fun streamunreadMessages(){
-        mainHandler.post(object : Runnable {
-            override fun run() {
-                unreadMessages.value = ChatClient.instance().getCurrentUser()?.totalUnreadCount!!
-                mainHandler.postDelayed(this, 1000)
-                Log.d("nnnn",unreadMessages.value.toString())
-            }
-        })
+    fun streamUnreadMessages(){
+        if (ChatClient.instance().getCurrentUser() != null)
+        {
+            mainHandler.post(object : Runnable {
+                override fun run() {
+                    unreadMessages.value = ChatClient.instance().getCurrentUser()?.totalUnreadCount!!
+                    mainHandler.postDelayed(this, 1000)
+                }
+            })
+        }
+
     }
 
     @Composable
@@ -138,30 +213,6 @@ class ViewModelmain : ViewModel() {
                 vehicleList.value =  values.getListOfObjects()
             }) {
 
-//            val list =ArrayList<Vehicle>()
-//            Column(modifier = Modifier
-//                .fillMaxWidth()
-//                .height(650.dp)) {
-//                rentalList.let {
-//                    for (i in it){
-//                        if (i.location == selectedCity.text){
-//                            list.add(i)
-//                        }
-//                    }
-//                }
-//                LazyColumn(modifier = Modifier.fillMaxHeight().padding(15.dp),
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    verticalArrangement = Arrangement.spacedBy(10.dp),) {
-//                    items(list){ vehicle ->
-//                        RentalListItem(vehicle){
-//                            val intent = Intent(rentalActivity, RentalItemActivity::class.java)
-//                            intent.putExtra("header",vehicle.name)
-//                            intent.putExtra("reg",vehicle.regNumber)
-//                            rentalActivity.startActivity(intent)
-//                        }
-//                    }
-//                }
-//            }
         }
     }
 

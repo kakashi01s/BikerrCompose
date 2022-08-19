@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.firefly.bikerr_compose.activities.LoginActivity
+import com.firefly.bikerr_compose.screens.login.PhoneNumberScreen
 import com.firefly.bikerr_compose.screens.login.RegisterScreen
 import com.firefly.bikerr_compose.screens.login.VerifyOtpScreen
 import com.firefly.bikerr_compose.viewmodel.ViewModellogin
@@ -16,20 +17,20 @@ import com.firefly.bikerr_compose.viewmodel.ViewModellogin
 @ExperimentalMaterialApi
 @Composable
 fun SetUpLoginGraph(
-    navcontroller: NavHostController,
+    navController: NavHostController,
     loginActivity: LoginActivity,
     viewModel: ViewModellogin,
 ) {
 
     NavHost(
-        navController = navcontroller,
+        navController = navController,
         startDestination = Screens.Register.route
     ){
 
         //Register route
         composable(route = Screens.Register.route)
         {
-            RegisterScreen(navcontroller,loginActivity,viewModel)
+            RegisterScreen(navController,loginActivity,viewModel)
         }
 
         //Verify otp route
@@ -54,9 +55,6 @@ fun SetUpLoginGraph(
             Log.d("login",username+email+phone)
            VerifyOtpScreen(loginActivity,viewModel,username,email,phone)
         }
-
-
-
 
     }
 }

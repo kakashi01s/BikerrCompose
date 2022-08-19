@@ -74,7 +74,6 @@ fun RegisterScreen(
                         Spacer(modifier = Modifier.height(4.dp))
                         PhoneNumberTextField(phone = phoneNumber,focusManager)
                         Spacer(modifier = Modifier.height(10.dp))
-                        privacyPolicy(loginActivity)
                         Spacer(modifier = Modifier.height(2.dp))
                         ButtonToLogin(onClick = {
 
@@ -93,49 +92,10 @@ fun RegisterScreen(
                 }
             }
 
-
 }
 
 
-@Composable
-fun privacyPolicy(loginActivity: LoginActivity) {
-    val annotatedString = buildAnnotatedString {
-        append("By joining, you agree to the ")
 
-        pushStringAnnotation(tag = "policy", annotation = "https://google.com/policy")
-        withStyle(style = SpanStyle(color = Color(0xFF218ff7))) {
-            append("privacy policy")
-        }
-        pop()
-
-        append(" and ")
-
-        pushStringAnnotation(tag = "terms", annotation = "https://google.com/terms")
-
-        withStyle(style = SpanStyle(color = Color(0xFF218ff7))) {
-            append("terms of use")
-        }
-
-        pop()
-    }
-
-    ClickableText(text = annotatedString, style = MaterialTheme.typography.body1, onClick = { offset ->
-        annotatedString.getStringAnnotations(tag = "policy", start = offset, end = offset).firstOrNull()?.let {
-            val intent = Intent(loginActivity,WebActivity::class.java)
-            intent.putExtra("url",it.item)
-            loginActivity.startActivity(intent)
-        }
-
-        annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset).firstOrNull()?.let {
-            Log.d("terms URL", it.item)
-            val intent = Intent(loginActivity,WebActivity::class.java)
-            intent.putExtra("url",it.item)
-            loginActivity.startActivity(intent)
-        }
-    })
-
-
-}
 
 @Composable
 private fun UsernameTextField(username : TextFieldState = remember { TextFieldState() },focusManager: FocusManager) {
